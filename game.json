@@ -1,0 +1,554 @@
+{
+	"width": 768,
+	"height": 432,
+	"fps": 30,
+	"main": "./script/main.js",
+	"assets": {
+		"main": {
+			"type": "script",
+			"path": "script/main.js",
+			"global": true
+		},
+		"jihai1": {
+			"type": "image",
+			"width": 270,
+			"height": 98,
+			"path": "image/jihai1.png"
+		},
+		"jihai2": {
+			"type": "image",
+			"width": 200,
+			"height": 97,
+			"path": "image/jihai2.png"
+		},
+		"manzu": {
+			"type": "image",
+			"width": 600,
+			"height": 96,
+			"path": "image/manzu.png"
+		},
+		"pinzu": {
+			"type": "image",
+			"width": 600,
+			"height": 96,
+			"path": "image/pinzu.png"
+		},
+		"souzu": {
+			"type": "image",
+			"width": 600,
+			"height": 96,
+			"path": "image/souzu.png"
+		},
+		"font16_1": {
+			"type": "image",
+			"width": 256,
+			"height": 96,
+			"path": "image/font16_1.png"
+		},
+		"font16_1_glyph": {
+			"type": "text",
+			"path": "text/font16_1_glyph.json"
+		},
+		"version": {
+			"type": "text",
+			"path": "text/version.txt"
+		},
+		"Common": {
+			"type": "script",
+			"path": "script/Common.js",
+			"global": true
+		},
+		"util": {
+			"type": "script",
+			"path": "script/util.js",
+			"global": true
+		},
+		"ne_e": {
+			"type": "audio",
+			"path": "audio/ne_e",
+			"systemId": "sound",
+			"duration": 405
+		},
+		"ne_eeyan": {
+			"type": "audio",
+			"path": "audio/ne_eeyan",
+			"systemId": "sound",
+			"duration": 1574
+		},
+		"ne_nerugia": {
+			"type": "audio",
+			"path": "audio/ne_nerugia",
+			"systemId": "sound",
+			"duration": 3784
+		},
+		"ne_akante": {
+			"type": "audio",
+			"path": "audio/ne_akante",
+			"systemId": "sound",
+			"duration": 843
+		},
+		"ne_aa1": {
+			"type": "audio",
+			"path": "audio/ne_aa1",
+			"systemId": "sound",
+			"duration": 505
+		},
+		"ne_akan1": {
+			"type": "audio",
+			"path": "audio/ne_akan1",
+			"systemId": "sound",
+			"duration": 435
+		},
+		"ne_akan2": {
+			"type": "audio",
+			"path": "audio/ne_akan2",
+			"systemId": "sound",
+			"duration": 424
+		},
+		"ne_akan3": {
+			"type": "audio",
+			"path": "audio/ne_akan3",
+			"systemId": "sound",
+			"duration": 532
+		},
+		"ne_akan4": {
+			"type": "audio",
+			"path": "audio/ne_akan4",
+			"systemId": "sound",
+			"duration": 570
+		},
+		"ne_akan5": {
+			"type": "audio",
+			"path": "audio/ne_akan5",
+			"systemId": "sound",
+			"duration": 270
+		},
+		"ne_ee1": {
+			"type": "audio",
+			"path": "audio/ne_ee1",
+			"systemId": "sound",
+			"duration": 344
+		},
+		"ne_ha1": {
+			"type": "audio",
+			"path": "audio/ne_ha1",
+			"systemId": "sound",
+			"duration": 1189
+		},
+		"ne_honmanisore1": {
+			"type": "audio",
+			"path": "audio/ne_honmanisore1",
+			"systemId": "sound",
+			"duration": 1215
+		},
+		"ne_kita1": {
+			"type": "audio",
+			"path": "audio/ne_kita1",
+			"systemId": "sound",
+			"duration": 534
+		},
+		"ne_kore1": {
+			"type": "audio",
+			"path": "audio/ne_kore1",
+			"systemId": "sound",
+			"duration": 495
+		},
+		"ne_kore2": {
+			"type": "audio",
+			"path": "audio/ne_kore2",
+			"systemId": "sound",
+			"duration": 270
+		},
+		"ne_kore3": {
+			"type": "audio",
+			"path": "audio/ne_kore3",
+			"systemId": "sound",
+			"duration": 930
+		},
+		"ne_koredesuwa1": {
+			"type": "audio",
+			"path": "audio/ne_koredesuwa1",
+			"systemId": "sound",
+			"duration": 633
+		},
+		"ne_majide1": {
+			"type": "audio",
+			"path": "audio/ne_majide1",
+			"systemId": "sound",
+			"duration": 1676
+		},
+		"ne_oosugoi1": {
+			"type": "audio",
+			"path": "audio/ne_oosugoi1",
+			"systemId": "sound",
+			"duration": 1650
+		},
+		"ne_oreka1": {
+			"type": "audio",
+			"path": "audio/ne_oreka1",
+			"systemId": "sound",
+			"duration": 562
+		},
+		"ne_sugo1": {
+			"type": "audio",
+			"path": "audio/ne_sugo1",
+			"systemId": "sound",
+			"duration": 1761
+		},
+		"ne_tanomu1": {
+			"type": "audio",
+			"path": "audio/ne_tanomu1",
+			"systemId": "sound",
+			"duration": 331
+		},
+		"ne_tuyo1": {
+			"type": "audio",
+			"path": "audio/ne_tuyo1",
+			"systemId": "sound",
+			"duration": 675
+		},
+		"ne_tyotyotyotyo": {
+			"type": "audio",
+			"path": "audio/ne_tyotyotyotyo",
+			"systemId": "sound",
+			"duration": 653
+		},
+		"ne_usi1": {
+			"type": "audio",
+			"path": "audio/ne_usi1",
+			"systemId": "sound",
+			"duration": 1019
+		},
+		"ne_uso1": {
+			"type": "audio",
+			"path": "audio/ne_uso1",
+			"systemId": "sound",
+			"duration": 340
+		},
+		"ne_uso3": {
+			"type": "audio",
+			"path": "audio/ne_uso3",
+			"systemId": "sound",
+			"duration": 431
+		},
+		"ne_usouso1": {
+			"type": "audio",
+			"path": "audio/ne_usouso1",
+			"systemId": "sound",
+			"duration": 408
+		},
+		"ne_usousouso1": {
+			"type": "audio",
+			"path": "audio/ne_usousouso1",
+			"systemId": "sound",
+			"duration": 576
+		},
+		"ne_uwa1": {
+			"type": "audio",
+			"path": "audio/ne_uwa1",
+			"systemId": "sound",
+			"duration": 1680
+		},
+		"ne_yatta1": {
+			"type": "audio",
+			"path": "audio/ne_yatta1",
+			"systemId": "sound",
+			"duration": 626
+		},
+		"ne_yurusanzo1": {
+			"type": "audio",
+			"path": "audio/ne_yurusanzo1",
+			"systemId": "sound",
+			"duration": 1940
+		},
+		"ne_ai1": {
+			"type": "audio",
+			"path": "audio/ne_ai1",
+			"systemId": "sound",
+			"duration": 643
+		},
+		"ne_eseitekini": {
+			"type": "audio",
+			"path": "audio/ne_eseitekini",
+			"systemId": "sound",
+			"duration": 889
+		},
+		"ne_good": {
+			"type": "audio",
+			"path": "audio/ne_good",
+			"systemId": "sound",
+			"duration": 402
+		},
+		"ne_honmani": {
+			"type": "audio",
+			"path": "audio/ne_honmani",
+			"systemId": "sound",
+			"duration": 1208
+		},
+		"ne_horaa1": {
+			"type": "audio",
+			"path": "audio/ne_horaa1",
+			"systemId": "sound",
+			"duration": 903
+		},
+		"ne_horaa2": {
+			"type": "audio",
+			"path": "audio/ne_horaa2",
+			"systemId": "sound",
+			"duration": 461
+		},
+		"ne_imanomita": {
+			"type": "audio",
+			"path": "audio/ne_imanomita",
+			"systemId": "sound",
+			"duration": 754
+		},
+		"ne_kitayo": {
+			"type": "audio",
+			"path": "audio/ne_kitayo",
+			"systemId": "sound",
+			"duration": 785
+		},
+		"ne_kitayo2": {
+			"type": "audio",
+			"path": "audio/ne_kitayo2",
+			"systemId": "sound",
+			"duration": 486
+		},
+		"ne_korekore": {
+			"type": "audio",
+			"path": "audio/ne_korekore",
+			"systemId": "sound",
+			"duration": 1330
+		},
+		"ne_korezettaikore": {
+			"type": "audio",
+			"path": "audio/ne_korezettaikore",
+			"systemId": "sound",
+			"duration": 1168
+		},
+		"ne_maashouganai": {
+			"type": "audio",
+			"path": "audio/ne_maashouganai",
+			"systemId": "sound",
+			"duration": 920
+		},
+		"ne_majide2": {
+			"type": "audio",
+			"path": "audio/ne_majide2",
+			"systemId": "sound",
+			"duration": 838
+		},
+		"ne_minna": {
+			"type": "audio",
+			"path": "audio/ne_minna",
+			"systemId": "sound",
+			"duration": 398
+		},
+		"ne_nigasukayo": {
+			"type": "audio",
+			"path": "audio/ne_nigasukayo",
+			"systemId": "sound",
+			"duration": 2020
+		},
+		"ne_okkei": {
+			"type": "audio",
+			"path": "audio/ne_okkei",
+			"systemId": "sound",
+			"duration": 830
+		},
+		"ne_onashasu": {
+			"type": "audio",
+			"path": "audio/ne_onashasu",
+			"systemId": "sound",
+			"duration": 715
+		},
+		"ne_oredato": {
+			"type": "audio",
+			"path": "audio/ne_oredato",
+			"systemId": "sound",
+			"duration": 662
+		},
+		"ne_oseisida": {
+			"type": "audio",
+			"path": "audio/ne_oseisida",
+			"systemId": "sound",
+			"duration": 1960
+		},
+		"ne_tanomuu": {
+			"type": "audio",
+			"path": "audio/ne_tanomuu",
+			"systemId": "sound",
+			"duration": 809
+		},
+		"ne_tinko": {
+			"type": "audio",
+			"path": "audio/ne_tinko",
+			"systemId": "sound",
+			"duration": 744
+		},
+		"ne_w": {
+			"type": "audio",
+			"path": "audio/ne_w",
+			"systemId": "sound",
+			"duration": 1014
+		},
+		"ne_zettaituyoi": {
+			"type": "audio",
+			"path": "audio/ne_zettaituyoi",
+			"systemId": "sound",
+			"duration": 2060
+		},
+		"speaker": {
+			"type": "script",
+			"path": "script/speaker.js",
+			"global": true
+		},
+		"ne_itii1": {
+			"type": "audio",
+			"path": "audio/ne_itii1",
+			"systemId": "sound",
+			"duration": 1317
+		},
+		"ne_doremi": {
+			"type": "audio",
+			"path": "audio/ne_doremi",
+			"systemId": "sound",
+			"duration": 1856
+		},
+		"ne_doya1": {
+			"type": "audio",
+			"path": "audio/ne_doya1",
+			"systemId": "sound",
+			"duration": 925
+		},
+		"ne_hayakumo": {
+			"type": "audio",
+			"path": "audio/ne_hayakumo",
+			"systemId": "sound",
+			"duration": 3920
+		},
+		"ne_kitigai": {
+			"type": "audio",
+			"path": "audio/ne_kitigai",
+			"systemId": "sound",
+			"duration": 2160
+		},
+		"ne_reberuga": {
+			"type": "audio",
+			"path": "audio/ne_reberuga",
+			"systemId": "sound",
+			"duration": 2560
+		},
+		"ne_uieeeee": {
+			"type": "audio",
+			"path": "audio/ne_uieeeee",
+			"systemId": "sound",
+			"duration": 1976
+		},
+		"ne_usoyaba": {
+			"type": "audio",
+			"path": "audio/ne_usoyaba",
+			"systemId": "sound",
+			"duration": 2807
+		},
+		"ne_yameruka": {
+			"type": "audio",
+			"path": "audio/ne_yameruka",
+			"systemId": "sound",
+			"duration": 1238
+		},
+		"MainScene": {
+			"type": "script",
+			"path": "script/MainScene.js",
+			"global": true
+		},
+		"ne_akui1": {
+			"type": "audio",
+			"path": "audio/ne_akui1",
+			"systemId": "sound",
+			"duration": 3440
+		},
+		"ne_atamaokasinarudekonoanime": {
+			"type": "audio",
+			"path": "audio/ne_atamaokasinarudekonoanime",
+			"systemId": "sound",
+			"duration": 3006
+		},
+		"ne_majikayamaikuka": {
+			"type": "audio",
+			"path": "audio/ne_majikayamaikuka",
+			"systemId": "sound",
+			"duration": 1858
+		},
+		"ne_matometengni": {
+			"type": "audio",
+			"path": "audio/ne_matometengni",
+			"systemId": "sound",
+			"duration": 5095
+		},
+		"ne_omaeyurusanzo": {
+			"type": "audio",
+			"path": "audio/ne_omaeyurusanzo",
+			"systemId": "sound",
+			"duration": 2290
+		},
+		"ne_ribenjisiteiku": {
+			"type": "audio",
+			"path": "audio/ne_ribenjisiteiku",
+			"systemId": "sound",
+			"duration": 1478
+		},
+		"ne_subuta": {
+			"type": "audio",
+			"path": "audio/ne_subuta",
+			"systemId": "sound",
+			"duration": 3870
+		},
+		"ne_touzen1": {
+			"type": "audio",
+			"path": "audio/ne_touzen1",
+			"systemId": "sound",
+			"duration": 2130
+		},
+		"ne_wantusuri": {
+			"type": "audio",
+			"path": "audio/ne_wantusuri",
+			"systemId": "sound",
+			"duration": 2012
+		},
+		"ne_zenzen": {
+			"type": "audio",
+			"path": "audio/ne_zenzen",
+			"systemId": "sound",
+			"duration": 2866
+		},
+		"restart": {
+			"type": "image",
+			"width": 64,
+			"height": 64,
+			"path": "image/restart.png"
+		},
+		"search": {
+			"type": "image",
+			"width": 64,
+			"height": 64,
+			"path": "image/search.png"
+		},
+		"ranking": {
+			"type": "image",
+			"width": 64,
+			"height": 64,
+			"path": "image/ranking.png"
+		}
+	},
+	"environment": {
+		"sandbox-runtime": "2",
+		"niconico": {
+			"supportedModes": [
+				"single",
+				"ranking"
+			]
+		}
+	}
+}
