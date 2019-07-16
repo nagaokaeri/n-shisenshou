@@ -9,7 +9,8 @@ function create() {
   var scene = new g.Scene({
     game: g.game,
     // このシーンで利用するアセットのIDを列挙し、シーンに通知します
-    assetIds: ["version", "manzu", "pinzu", "souzu", "jihai1", "jihai2", "font16_1", "font16_1_glyph","restart","search","ranking",
+    assetIds: ["version", "manzu", "pinzu", "souzu", "jihai1", "jihai2", "font16_1", "font16_1_glyph",
+      "restart","search","ranking","giveup",
       "ne_aa1","ne_akan1","ne_akan2","ne_akan3","ne_akan4","ne_akan5","ne_akante","ne_e","ne_ee1",
       "ne_eeyan","ne_ha1","ne_honmanisore1","ne_kita1","ne_kore1","ne_kore2","ne_kore3","ne_koredesuwa1",
       "ne_majide1","ne_nerugia","ne_oosugoi1","ne_oreka1","ne_sugo1","ne_tanomu1","ne_tuyo1",
@@ -133,8 +134,11 @@ function create() {
 
     // 時間切れ後も続けるために、画面クリックで操作不能を解除
     function goOvertime(ev){
-      setOperable(true);
+
       scene.pointUpCapture.remove(goOvertime);
+
+      // ギブアップボタンを削除
+      scene.remove(giveupButton);
 
       // ヒントボタンを追加
       var hintButton = new g.Sprite({
@@ -171,6 +175,8 @@ function create() {
         }
       });
       scene.append(rankingButton);
+      setOperable(true);
+
     }
 
     // =======================================================
@@ -178,10 +184,21 @@ function create() {
     // ※ 新市場対応にするときは修正の必要あり。
     // =======================================================
     var startTimeMillis = new Date().getTime();
+    var prevTimeMillis = startTimeMillis;
     var millisPerFrame = 1000 / g.game.fps;
     function updateFrameCount() {
       var currentTimeMillis = new Date().getTime();
-      frameCount = Math.floor((currentTimeMillis - startTimeMillis)/millisPerFrame);
+      // PCのシステム時刻を変えるチートへの小手先の対策。5秒以上時計が「戻っていたら」不正と判断
+      if (currentTimeMillis - prevTimeMillis <= -5000) {
+        forceEndGame();
+      } else {
+        var nextFrameCount = Math.floor((currentTimeMillis - startTimeMillis)/millisPerFrame);
+        frameCount = Math.max(frameCount, nextFrameCount);
+      }
+      prevTimeMillis = currentTimeMillis;
+    }
+    function forceEndGame() {
+      frameCount = Math.max(frameCount, gameTimeLimit * g.game.fps);
     }
     function updateHandler() {
 
@@ -206,11 +223,12 @@ function create() {
             window.RPGAtsumaru.experimental.scoreboards.display(SCORE_BOARD_ID);
           }).catch(function (e) {
             // ng
+          }).finally(function(){
+            goOvertime();
           });
-
+        } else {
+          scene.pointUpCapture.add(goOvertime);
         }
-
-        scene.pointUpCapture.add(goOvertime);
 
       }
       updateTimerLabel();
@@ -435,6 +453,21 @@ function create() {
     scene.append(resetButton);
 
 
+    var giveupButton = new g.Sprite({
+      scene: scene,
+      src: scene.assets["giveup"],
+      x: g.game.width - 61,
+      y: g.game.height - 180,
+      srcWidth: 64,
+      srcHeight: 64,
+      width: 60,
+      height:  60,
+      touchable: true
+    });
+    giveupButton.pointUp.add(function(ev) {
+      forceEndGame();
+    });
+    scene.append(giveupButton);
 
     setOperable(false); // 最初は操作不可
     scene.setTimeout(function() {
