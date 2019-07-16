@@ -47,14 +47,14 @@ function create() {
     // 背景色を設定します。
     var background1 = new g.FilledRect({
       scene: scene,
-      cssColor: "pink",
+      cssColor: "forestgreen",
       width: g.game.width,
       height: g.game.height
     });
     scene.append(background1);
     var background2 = new g.FilledRect({
       scene: scene,
-      cssColor: "thistle",
+      cssColor: "seagreen",
       x: g.game.width / 2,
       y: g.game.height / 2,
       width: 0,
