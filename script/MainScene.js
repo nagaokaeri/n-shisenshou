@@ -336,22 +336,33 @@ function create() {
                 }
 
                 var shiningRoad = new g.E({ scene: scene, opacity: 0.50 });
-                for (i = 0; i + 1 < path.length; i++) {
+                var roadWidth = 5;
+                for (var i = 0; i < path.length; i++) {
                   var p1 = path[i];
-                  var p2 = path[i+1];
                   var y1 = toY(p1.row) + cmn.HAI_DISPLAY_HEIGHT/2;
                   var x1 = toX(p1.col) + cmn.HAI_DISPLAY_WIDTH/2;
-                  var y2 = toY(p2.row) + cmn.HAI_DISPLAY_HEIGHT/2;
-                  var x2 = toX(p2.col) + cmn.HAI_DISPLAY_WIDTH/2;
-                  var rect = new g.FilledRect({
+                  shiningRoad.append(new g.FilledRect({
                     scene: scene,
-                    x: Math.min(x1, x2) - 5,
-                    y: Math.min(y1, y2) - 5,
-                    width: (Math.max(x1, x2) - Math.min(x1, x2)) + 5,
-                    height: (Math.max(y1, y2) - Math.min(y1, y2)) + 5,
+                    x: x1 - roadWidth,
+                    y: y1 - roadWidth,
+                    width: roadWidth,
+                    height: roadWidth,
                     cssColor: "orange"
-                  });
-                  shiningRoad.append(rect);
+                  }));
+                  if (i + 1 < path.length) {
+                    var p2 = path[i+1];
+                    var y2 = toY(p2.row) + cmn.HAI_DISPLAY_HEIGHT/2;
+                    var x2 = toX(p2.col) + cmn.HAI_DISPLAY_WIDTH/2;
+                    var dir = (p1.col === p2.col ? 0 : 1);  // tate: 0, yoko: 1
+                    shiningRoad.append(new g.FilledRect({
+                      scene: scene,
+                      x: Math.min(x1, x2) + (dir === 1 ? 0 : -roadWidth),
+                      y: Math.min(y1, y2) + (dir === 0 ? 0 : -roadWidth),
+                      width: (Math.max(x1, x2) - Math.min(x1, x2)) + (dir === 1 ? -roadWidth : roadWidth),
+                      height: (Math.max(y1, y2) - Math.min(y1, y2)) + (dir === 0 ? -roadWidth : roadWidth),
+                      cssColor: "orange"
+                    }));
+                  }
                 }
                 scene.append(shiningRoad);
                 var intervalId = scene.setInterval(function(){
