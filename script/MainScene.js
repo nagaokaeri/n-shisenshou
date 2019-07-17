@@ -5,12 +5,11 @@ var util = require("./util");
 var speaker = require("./speaker");
 
 /** NOTE: このファイルで唯一の export 関数 */
-function create(audioScene) {
+function create(assetsScene) {
   var scene = new g.Scene({
     game: g.game,
     // このシーンで利用するアセットのIDを列挙し、シーンに通知します
-    assetIds: ["version", "manzu", "pinzu", "souzu", "jihai1", "jihai2", "font16_1", "font16_1_glyph",
-      "restart","search","ranking","giveup"]
+    assetIds: []
   });
   // ゲームスコアの初期化
   g.game.vars.gameState = {
@@ -52,9 +51,9 @@ function create(audioScene) {
 
     // フォントを読込みます。
     // BitmapFont を生成
-    var glyph = JSON.parse(scene.assets["font16_1_glyph"].data);
+    var glyph = JSON.parse(assetsScene.assets["font16_1_glyph"].data);
     var font = new g.BitmapFont({
-      src: scene.assets["font16_1"],
+      src: assetsScene.assets["font16_1"],
       map: glyph.map,
       defaultGlyphWidth: glyph.width,
       defaultGlyphHeight: glyph.height,
@@ -62,7 +61,7 @@ function create(audioScene) {
     });
 
     // バージョン表記のラベル
-    var versionText = "ver " + scene.assets["version"].data.replace(/[\r\n]/g,"");
+    var versionText = "ver " + assetsScene.assets["version"].data.replace(/[\r\n]/g,"");
     scene.append(new g.Label({
       scene: scene,
       text: versionText,
@@ -130,7 +129,7 @@ function create(audioScene) {
       // ヒントボタンを追加
       var hintButton = new g.Sprite({
         scene: scene,
-        src: scene.assets["search"],
+        src: assetsScene.assets["search"],
         x: g.game.width - 65,
         y: g.game.height - 180,
         srcWidth: 64,
@@ -147,7 +146,7 @@ function create(audioScene) {
       // ランキングボード表示ボタン
       var rankingButton = new g.Sprite({
         scene: scene,
-        src: scene.assets["ranking"],
+        src: assetsScene.assets["ranking"],
         x: g.game.width - 66,
         y: g.game.height - 259,
         srcWidth: 64,
@@ -269,7 +268,7 @@ function create(audioScene) {
       for (var col = 1; col <= 17; col++) {
         t[row][col].label = list[(row-1) * 17 + (col-1)];
 
-        var img = createHaiImage(scene, t[row][col].label);
+        var img = createHaiImage(scene, assetsScene, t[row][col].label);
         img.y = toY(row);
         img.x = toX(col);
         img.touchable = true;
@@ -301,9 +300,9 @@ function create(audioScene) {
                 // 消せた。
 
                 if (ti.label === 'z4')
-                  speaker.playHaiSelectZ4(audioScene, g.game.random);
+                  speaker.playHaiSelectZ4(assetsScene, g.game.random);
                 else
-                  speaker.playHaiErase(audioScene, g.game.random);
+                  speaker.playHaiErase(assetsScene, g.game.random);
 
                 ti.ref.destroy(); ti.ref = undefined;
                 ti.label = undefined;
@@ -368,7 +367,7 @@ function create(audioScene) {
                   if (remainTimeDecisec() > 0) { // 延長戦では無効にするために判定
                     var cnt = 7;
                     var aciid = scene.setInterval(function(){
-                      speaker.playHaiAllClear(audioScene, g.game.random);
+                      speaker.playHaiAllClear(assetsScene, g.game.random);
                       cnt--;
                       if (cnt <= 0) {
                         scene.clearInterval(aciid);
@@ -378,7 +377,7 @@ function create(audioScene) {
                 } else if (countErasable(scene, t, false) == 0) {
                   t = shuffleBoard(scene, t, haiContainer, setOperable);
                   // countErasable(scene, t, false);
-                  speaker.playHaiShuffle(audioScene, g.game.random);
+                  speaker.playHaiShuffle(assetsScene, g.game.random);
                 }
 
               } else {
@@ -390,7 +389,7 @@ function create(audioScene) {
                 }
 
                 // 失敗音を鳴らす
-                speaker.playHaiMiss(audioScene, g.game.random);
+                speaker.playHaiMiss(assetsScene, g.game.random);
 
                 // 選択解除する
                 si.overlay.destroy();
@@ -403,9 +402,9 @@ function create(audioScene) {
             // 1牌目を選択した
 
             if (ti.label === 'z4')
-              speaker.playHaiSelectZ4(audioScene, g.game.random);
+              speaker.playHaiSelectZ4(assetsScene, g.game.random);
             else
-              speaker.playHaiSelect(audioScene, g.game.random);
+              speaker.playHaiSelect(assetsScene, g.game.random);
 
             var rect = new g.FilledRect({
               scene: scene,
@@ -433,7 +432,7 @@ function create(audioScene) {
 
     var resetButton = new g.Sprite({
       scene: scene,
-      src: scene.assets["restart"],
+      src: assetsScene.assets["restart"],
       x: g.game.width - 65,
       y: g.game.height - 100,
       width: 64,
@@ -442,18 +441,18 @@ function create(audioScene) {
     });
     resetButton.pointUp.add(function(ev) {
       if (remainTimeDecisec() > 0) {
-        speaker.playRestart1(audioScene, g.game.random);
+        speaker.playRestart1(assetsScene, g.game.random);
       } else {
-        speaker.playRestart2(audioScene, g.game.random);
+        speaker.playRestart2(assetsScene, g.game.random);
       }
-      g.game.replaceScene(create(audioScene));
+      g.game.replaceScene(create(assetsScene));
     });
     scene.append(resetButton);
 
 
     var giveupButton = new g.Sprite({
       scene: scene,
-      src: scene.assets["giveup"],
+      src: assetsScene.assets["giveup"],
       x: g.game.width - 61,
       y: g.game.height - 180,
       srcWidth: 64,
@@ -485,13 +484,13 @@ function toY(row) { return (row-1) * (cmn.HAI_DISPLAY_HEIGHT + cmn.HAI_DISPLAY_M
  * @params {string} s  m1-m9,p1-p9,s1-s9,z1-z7
  * @returns {Sprite}
  */
-function createHaiImage(scene, s) {
+function createHaiImage(scene, assetsScene, s) {
 
   if (s[0] === 'm') {
     var n = Number(s[1]);
     var m = new g.Sprite({
       scene: scene,
-      src: scene.assets["manzu"],
+      src: assetsScene.assets["manzu"],
       srcX: [0,2,69,135,202,268,334,400,466,532][n],
       srcY: 3,
       srcWidth: cmn.HAI_SRC_WIDTH,
@@ -505,7 +504,7 @@ function createHaiImage(scene, s) {
     var n = Number(s[1]);
     var m = new g.Sprite({
       scene: scene,
-      src: scene.assets["pinzu"],
+      src: assetsScene.assets["pinzu"],
       srcX: [0,2,69,135,202,268,336,402,468,535][n],
       srcY: 3,
       srcWidth: cmn.HAI_SRC_WIDTH,
@@ -520,7 +519,7 @@ function createHaiImage(scene, s) {
     var n = Number(s[1]);
     var m = new g.Sprite({
       scene: scene,
-      src: scene.assets["souzu"],
+      src: assetsScene.assets["souzu"],
       srcX: [0,2,69,135,202,268,336,402,468,535][n],
       srcY: 3,
       srcWidth: cmn.HAI_SRC_WIDTH,
@@ -535,7 +534,7 @@ function createHaiImage(scene, s) {
     if (1 <= n && n <= 4) {
       var m = new g.Sprite({
         scene: scene,
-        src: scene.assets["jihai1"],
+        src: assetsScene.assets["jihai1"],
         srcX: [0,2,70,137,205][n],
         srcY: 4,
         srcWidth: cmn.HAI_SRC_WIDTH,
@@ -548,7 +547,7 @@ function createHaiImage(scene, s) {
     if (5 <= n && n <= 7) {
       var m = new g.Sprite({
         scene: scene,
-        src: scene.assets["jihai2"],
+        src: assetsScene.assets["jihai2"],
         srcX: [0,2,69,135,202][n-4],
         srcY: 4,
         srcWidth: cmn.HAI_SRC_WIDTH,

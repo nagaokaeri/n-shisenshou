@@ -12,9 +12,12 @@ function main() {
   }
 
   // リスタートで音声ファイルを再読み込みしないために階層をわける
-  var audioScene = new g.Scene({
+  var assetsScene = new g.Scene({
     game: g.game,
     assetIds: [
+      "version", "font16_1", "font16_1_glyph",
+      "manzu", "pinzu", "souzu", "jihai1", "jihai2",
+      "restart","search","ranking","giveup",
       "ne_aa1","ne_akan1","ne_akan2","ne_akan3","ne_akan4","ne_akan5","ne_akante","ne_e","ne_ee1",
       "ne_eeyan","ne_ha1","ne_honmanisore1","ne_kita1","ne_kore1","ne_kore2","ne_kore3","ne_koredesuwa1",
       "ne_majide1","ne_nerugia","ne_oosugoi1","ne_oreka1","ne_sugo1","ne_tanomu1","ne_tuyo1",
@@ -28,10 +31,10 @@ function main() {
       "ne_matometengni","ne_omaeyurusanzo","ne_ribenjisiteiku","ne_subuta","ne_touzen1",
       "ne_wantusuri","ne_zenzen"]
   });
-  audioScene.loaded.add(function () {
-    g.game.pushScene(MainScene.create(audioScene));
+  assetsScene.loaded.add(function () {
+    g.game.pushScene(MainScene.create(assetsScene));
   });
-  g.game.pushScene(audioScene);
+  g.game.pushScene(assetsScene);
 }
 
 module.exports = main;
