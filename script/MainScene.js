@@ -5,24 +5,12 @@ var util = require("./util");
 var speaker = require("./speaker");
 
 /** NOTE: このファイルで唯一の export 関数 */
-function create() {
+function create(audioScene) {
   var scene = new g.Scene({
     game: g.game,
     // このシーンで利用するアセットのIDを列挙し、シーンに通知します
     assetIds: ["version", "manzu", "pinzu", "souzu", "jihai1", "jihai2", "font16_1", "font16_1_glyph",
-      "restart","search","ranking","giveup",
-      "ne_aa1","ne_akan1","ne_akan2","ne_akan3","ne_akan4","ne_akan5","ne_akante","ne_e","ne_ee1",
-      "ne_eeyan","ne_ha1","ne_honmanisore1","ne_kita1","ne_kore1","ne_kore2","ne_kore3","ne_koredesuwa1",
-      "ne_majide1","ne_nerugia","ne_oosugoi1","ne_oreka1","ne_sugo1","ne_tanomu1","ne_tuyo1",
-      "ne_tyotyotyotyo","ne_usi1","ne_uso1","ne_uso3","ne_usouso1","ne_usousouso1","ne_uwa1",
-      "ne_yatta1","ne_yurusanzo1","ne_ai1","ne_eseitekini","ne_good","ne_honmani","ne_horaa1",
-      "ne_horaa2","ne_imanomita","ne_kitayo","ne_kitayo2","ne_korekore","ne_korezettaikore",
-      "ne_maashouganai","ne_majide2","ne_minna","ne_nigasukayo","ne_okkei","ne_onashasu",
-      "ne_oredato","ne_oseisida","ne_tanomuu","ne_tinko","ne_w","ne_zettaituyoi","ne_itii1",
-      "ne_doremi","ne_doya1","ne_hayakumo","ne_kitigai","ne_reberuga","ne_uieeeee","ne_usoyaba",
-      "ne_yameruka","ne_akui1","ne_atamaokasinarudekonoanime","ne_majikayamaikuka",
-      "ne_matometengni","ne_omaeyurusanzo","ne_ribenjisiteiku","ne_subuta","ne_touzen1",
-      "ne_wantusuri","ne_zenzen"]
+      "restart","search","ranking","giveup"]
   });
   // ゲームスコアの初期化
   g.game.vars.gameState = {
@@ -314,9 +302,9 @@ function create() {
                 // 消せた。
 
                 if (ti.label === 'z4')
-                  speaker.playHaiSelectZ4(scene, g.game.random);
+                  speaker.playHaiSelectZ4(audioScene, g.game.random);
                 else
-                  speaker.playHaiErase(scene, g.game.random);
+                  speaker.playHaiErase(audioScene, g.game.random);
 
                 ti.ref.destroy(); ti.ref = undefined;
                 ti.label = undefined;
@@ -381,7 +369,7 @@ function create() {
                   if (remainTimeDecisec() > 0) { // 延長戦では無効にするために判定
                     var cnt = 7;
                     var aciid = scene.setInterval(function(){
-                      speaker.playHaiAllClear(scene, g.game.random);
+                      speaker.playHaiAllClear(audioScene, g.game.random);
                       cnt--;
                       if (cnt <= 0) {
                         scene.clearInterval(aciid);
@@ -391,7 +379,7 @@ function create() {
                 } else if (countErasable(scene, t, false) == 0) {
                   t = shuffleBoard(scene, t, haiContainer, setOperable);
                   // countErasable(scene, t, false);
-                  speaker.playHaiShuffle(scene, g.game.random);
+                  speaker.playHaiShuffle(audioScene, g.game.random);
                 }
 
               } else {
@@ -403,7 +391,7 @@ function create() {
                 }
 
                 // 失敗音を鳴らす
-                speaker.playHaiMiss(scene, g.game.random);
+                speaker.playHaiMiss(audioScene, g.game.random);
 
                 // 選択解除する
                 si.overlay.destroy();
@@ -416,9 +404,9 @@ function create() {
             // 1牌目を選択した
 
             if (ti.label === 'z4')
-              speaker.playHaiSelectZ4(scene, g.game.random);
+              speaker.playHaiSelectZ4(audioScene, g.game.random);
             else
-              speaker.playHaiSelect(scene, g.game.random);
+              speaker.playHaiSelect(audioScene, g.game.random);
 
             var rect = new g.FilledRect({
               scene: scene,
@@ -455,11 +443,11 @@ function create() {
     });
     resetButton.pointUp.add(function(ev) {
       if (remainTimeDecisec() > 0) {
-        speaker.playRestart1(scene, g.game.random);
+        speaker.playRestart1(audioScene, g.game.random);
       } else {
-        speaker.playRestart2(scene, g.game.random);
+        speaker.playRestart2(audioScene, g.game.random);
       }
-      g.game.replaceScene(create());
+      g.game.replaceScene(create(audioScene));
     });
     scene.append(resetButton);
 
