@@ -16,7 +16,6 @@ function create(audioScene) {
   g.game.vars.gameState = {
     score: 0
   };
-  var SCORE_BOARD_ID = 1; // ボードIDとして固定で1を指定
   // 制限時間
   var gameTimeLimit = 80; // デフォルトの制限時間80秒
   var frameCount = 0; // 経過時間をフレーム単位で記録
@@ -159,7 +158,7 @@ function create(audioScene) {
       });
       rankingButton.pointUp.add(function(ev) {
         if (typeof window !== "undefined" && window.RPGAtsumaru) {
-          window.RPGAtsumaru.experimental.scoreboards.display(SCORE_BOARD_ID);
+          window.RPGAtsumaru.experimental.scoreboards.display(cmn.SCORE_BOARD_ID);
         }
       });
       scene.append(rankingButton);
@@ -203,12 +202,12 @@ function create(audioScene) {
         // スコアボードにスコア送信
         if (typeof window !== "undefined" && window.RPGAtsumaru) {
           window.RPGAtsumaru.experimental.scoreboards.setRecord(
-            SCORE_BOARD_ID,
+            cmn.SCORE_BOARD_ID,
             g.game.vars.gameState.score // スコアを送信
           ).then(function () {
             // ok
             // スコアボードを表示
-            window.RPGAtsumaru.experimental.scoreboards.display(SCORE_BOARD_ID);
+            window.RPGAtsumaru.experimental.scoreboards.display(cmn.SCORE_BOARD_ID);
           }).catch(function (e) {
             // ng
           }).finally(function(){
