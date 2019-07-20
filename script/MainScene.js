@@ -11,20 +11,6 @@ function create(assetsScene) {
     // このシーンで利用するアセットのIDを列挙し、シーンに通知します
     assetIds: []
   });
-  // ゲームスコアの初期化
-  g.game.vars.gameState = {
-    score: 0
-  };
-  // 制限時間
-  var gameTimeLimit = 80; // デフォルトの制限時間80秒
-  var frameCount = 0; // 経過時間をフレーム単位で記録
-  scene.message.add(function(msg) {
-    if (msg.data && msg.data.type === "start" && msg.data.parameters && msg.data.parameters.totalTimeLimit) {
-      // 制限時間を通知するイベントを受信した時点で初期化する
-      // ゲームのローディング時間を考慮し、7秒短くする
-      gameTimeLimit = msg.data.parameters.totalTimeLimit - 7;
-    }
-  });
 
   scene.loaded.add(function () {
 
@@ -59,17 +45,6 @@ function create(assetsScene) {
       defaultGlyphHeight: glyph.height,
       missingGlyph: glyph.missingGlyph
     });
-
-    // バージョン表記のラベル
-    var versionText = "ver " + assetsScene.assets["version"].data.replace(/[\r\n]/g,"");
-    scene.append(new g.Label({
-      scene: scene,
-      text: versionText,
-      font: font,
-      fontSize: 16,
-      x: g.game.width - (16 * versionText.length + 4),
-      y: g.game.height - (16 + 4)
-    }));
 
     /** 牌を消すごとに +1 される */
     var eraseCount = 0;
@@ -106,7 +81,7 @@ function create(assetsScene) {
         timerLabel.text = text;
         timerLabel.invalidate();
         // 残り時間バーの更新
-        var elapsedTimeRatio = Math.max(0, 1.0 - s/(10*gameTimeLimit));
+        var elapsedTimeRatio = Math.max(0, 1.0 - s/(10*cmn.data.gameTimeLimit));
         background2.width = g.game.width * elapsedTimeRatio;
         background2.height = g.game.height * elapsedTimeRatio;
         background2.x = g.game.width / 2 - background2.width / 2;
@@ -115,7 +90,7 @@ function create(assetsScene) {
       }
     }
     function remainTimeDecisec() {
-      return Math.floor(gameTimeLimit * 10 - frameCount / g.game.fps * 10);
+      return Math.floor(cmn.data.gameTimeLimit * 10 - cmn.data.frameCount / g.game.fps * 10);
     }
 
     // 時間切れ後も続けるために、画面クリックで操作不能を解除
@@ -123,68 +98,11 @@ function create(assetsScene) {
 
       scene.pointUpCapture.remove(goOvertime);
 
-      // ギブアップボタンを削除
-      scene.remove(giveupButton);
-
-      // ヒントボタンを追加
-      var hintButton = new g.Sprite({
-        scene: scene,
-        src: assetsScene.assets["search"],
-        x: g.game.width - 65,
-        y: g.game.height - 180,
-        srcWidth: 64,
-        srcHeight: 64,
-        width: 60,
-        height:  60,
-        touchable: true
-      });
-      hintButton.pointUp.add(function(ev) {
-        countErasable(scene, t, true);
-      });
-      scene.append(hintButton);
-
-      // ランキングボード表示ボタン
-      var rankingButton = new g.Sprite({
-        scene: scene,
-        src: assetsScene.assets["ranking"],
-        x: g.game.width - 66,
-        y: g.game.height - 259,
-        srcWidth: 64,
-        srcHeight: 64,
-        width: 60,
-        height:  60,
-        touchable: true
-      });
-      rankingButton.pointUp.add(function(ev) {
-        if (typeof window !== "undefined" && window.RPGAtsumaru) {
-          window.RPGAtsumaru.experimental.scoreboards.display(cmn.SCORE_BOARD_ID);
-        }
-      });
-      scene.append(rankingButton);
       setOperable(true);
-
     }
 
-    // =======================================================
-    // ※ RPG アツマールで別タブを表示すると時計が止まるチート対策
-    // ※ 新市場対応にするときは修正の必要あり。
-    // =======================================================
-    var startTimeMillis = new Date().getTime();
-    var prevTimeMillis = startTimeMillis;
-    var millisPerFrame = 1000 / g.game.fps;
     function updateFrameCount() {
-      var currentTimeMillis = new Date().getTime();
-      // PCのシステム時刻を変えるチートへの小手先の対策。5秒以上時計が「戻っていたら」不正と判断
-      if (currentTimeMillis - prevTimeMillis <= -5000) {
-        forceEndGame();
-      } else {
-        var nextFrameCount = Math.floor((currentTimeMillis - startTimeMillis)/millisPerFrame);
-        frameCount = Math.max(frameCount, nextFrameCount);
-      }
-      prevTimeMillis = currentTimeMillis;
-    }
-    function forceEndGame() {
-      frameCount = Math.max(frameCount, gameTimeLimit * g.game.fps);
+      ++cmn.data.frameCount;
     }
     function updateHandler() {
 
@@ -272,6 +190,7 @@ function create(assetsScene) {
         img.y = toY(row);
         img.x = toX(col);
         img.touchable = true;
+        img.local = true;
 
         img.tag = {
           row: row,
@@ -304,81 +223,18 @@ function create(assetsScene) {
                 else
                   speaker.playHaiErase(assetsScene, g.game.random);
 
-                ti.ref.destroy(); ti.ref = undefined;
-                ti.label = undefined;
-                si.overlay.destroy(); si.overlay = undefined;
-                si.ref.destroy(); si.ref = undefined;
-                si.label = undefined;
-                t.selectedPos = undefined;
-
-                eraseCount++;
-                if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
-                  g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
-                  // 全消ししたら点数追加（残り時間）
-                  if (eraseCount === 17 * 8 / 2) {
-                    g.game.vars.gameState.score += remainTimeDecisec();
-                  }
-                  updateScoreLabel();
-                }
-
-                var shiningRoad = new g.E({ scene: scene, opacity: 0.50 });
-                var roadRadius = 2;
-                for (var i = 0; i < path.length; i++) {
-                  var p1 = path[i];
-                  var y1 = toY(p1.row) + cmn.HAI_DISPLAY_HEIGHT/2;
-                  var x1 = toX(p1.col) + cmn.HAI_DISPLAY_WIDTH/2;
-                  shiningRoad.append(new g.FilledRect({
-                    scene: scene,
-                    x: x1 - roadRadius,
-                    y: y1 - roadRadius,
-                    width: roadRadius * 2,
-                    height: roadRadius * 2,
-                    cssColor: "orange"
-                  }));
-                  if (i + 1 < path.length) {
-                    var p2 = path[i+1];
-                    var y2 = toY(p2.row) + cmn.HAI_DISPLAY_HEIGHT/2;
-                    var x2 = toX(p2.col) + cmn.HAI_DISPLAY_WIDTH/2;
-                    var dir = (p1.col === p2.col ? 1 : 0);  // 1: tate, 0: yoko
-                    shiningRoad.append(new g.FilledRect({
-                      scene: scene,
-                      x: Math.min(x1, x2) + (dir === 0 ? roadRadius : -roadRadius),
-                      y: Math.min(y1, y2) + (dir === 1 ? roadRadius : -roadRadius),
-                      width: (Math.max(x1, x2) - Math.min(x1, x2)) + 2 * (dir === 0 ? -roadRadius : roadRadius),
-                      height: (Math.max(y1, y2) - Math.min(y1, y2)) + 2 * (dir === 1 ? -roadRadius : roadRadius),
-                      cssColor: "orange"
-                    }));
-                  }
-                }
-                scene.append(shiningRoad);
-                var intervalId = scene.setInterval(function(){
-                  shiningRoad.opacity -= 0.01;
-                  shiningRoad.modified();
-                  if (shiningRoad.opacity <= 0) {
-                    shiningRoad.destroy();
-                    scene.clearInterval(intervalId);
-                  }
-                }, 20);
-
-                if (eraseCount === 17 * 8 / 2) {
-                  // 全消しおめですｗ
-                  countErasable(scene, t, false); // ヒント表示を消すために一応呼び出す
-
-                  if (remainTimeDecisec() > 0) { // 延長戦では無効にするために判定
-                    var cnt = 7;
-                    var aciid = scene.setInterval(function(){
-                      speaker.playHaiAllClear(assetsScene, g.game.random);
-                      cnt--;
-                      if (cnt <= 0) {
-                        scene.clearInterval(aciid);
-                      }
-                    }, 700);
-                  }
-                } else if (countErasable(scene, t, false) == 0) {
-                  t = shuffleBoard(scene, t, haiContainer, setOperable);
-                  // countErasable(scene, t, false);
-                  speaker.playHaiShuffle(assetsScene, g.game.random);
-                }
+                g.game.raiseEvent(new g.MessageEvent({
+                  type: 'haiErase',
+                  pos1: {
+                    row: si.ref.tag.row,
+                    col: si.ref.tag.col
+                  },
+                  pos2: {
+                    row: ti.ref.tag.row,
+                    col: ti.ref.tag.col
+                  },
+                  path: path
+                }));
 
               } else {
                 // 消せない
@@ -430,52 +286,117 @@ function create(assetsScene) {
     scene.append(haiContainer);
     scene.append(cover);
 
-    var resetButton = new g.Sprite({
-      scene: scene,
-      src: assetsScene.assets["restart"],
-      x: g.game.width - 65,
-      y: g.game.height - 100,
-      width: 64,
-      height:  64,
-      touchable: true
-    });
-    resetButton.pointUp.add(function(ev) {
-      if (remainTimeDecisec() > 0) {
-        speaker.playRestart1(assetsScene, g.game.random);
-      } else {
-        speaker.playRestart2(assetsScene, g.game.random);
-      }
-      g.game.replaceScene(create(assetsScene));
-    });
-    scene.append(resetButton);
-
-
-    var giveupButton = new g.Sprite({
-      scene: scene,
-      src: assetsScene.assets["giveup"],
-      x: g.game.width - 61,
-      y: g.game.height - 180,
-      srcWidth: 64,
-      srcHeight: 64,
-      width: 60,
-      height:  60,
-      touchable: true
-    });
-    giveupButton.pointUp.add(function(ev) {
-      forceEndGame();
-    });
-    scene.append(giveupButton);
-
     setOperable(false); // 最初は操作不可
     scene.setTimeout(function() {
       t = shuffleBoard(scene, t, haiContainer, setOperable);
       // countErasable(scene, t, false);
     }, 600);
 
+    function eraseHai(pos1, pos2, path)  {
+
+      var ti = t[pos2.row][pos2.col]; // 今クリックされた牌
+      var si = t[pos1.row][pos1.col]; // ひとつ前にクリックされた牌
+
+      if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
+      ti.ref.destroy(); ti.ref = undefined;
+      ti.label = undefined;
+
+      if (si.overlay) { si.overlay.destroy(); si.overlay = undefined; }
+      si.ref.destroy(); si.ref = undefined;
+      si.label = undefined;
+
+      t.selectedPos = undefined;
+
+      eraseCount++;
+      if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
+        g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
+        // 全消ししたら点数追加（残り時間）
+        if (eraseCount === 17 * 8 / 2) {
+          g.game.vars.gameState.score += remainTimeDecisec();
+        }
+        updateScoreLabel();
+      }
+
+      var shiningRoad = new g.E({ scene: scene, opacity: 0.50 });
+      var roadRadius = 2;
+      for (var i = 0; i < path.length; i++) {
+        var p1 = path[i];
+        var y1 = toY(p1.row) + cmn.HAI_DISPLAY_HEIGHT/2;
+        var x1 = toX(p1.col) + cmn.HAI_DISPLAY_WIDTH/2;
+        shiningRoad.append(new g.FilledRect({
+          scene: scene,
+          x: x1 - roadRadius,
+          y: y1 - roadRadius,
+          width: roadRadius * 2,
+          height: roadRadius * 2,
+          cssColor: "orange"
+        }));
+        if (i + 1 < path.length) {
+          var p2 = path[i+1];
+          var y2 = toY(p2.row) + cmn.HAI_DISPLAY_HEIGHT/2;
+          var x2 = toX(p2.col) + cmn.HAI_DISPLAY_WIDTH/2;
+          var dir = (p1.col === p2.col ? 1 : 0);  // 1: tate, 0: yoko
+          shiningRoad.append(new g.FilledRect({
+            scene: scene,
+            x: Math.min(x1, x2) + (dir === 0 ? roadRadius : -roadRadius),
+            y: Math.min(y1, y2) + (dir === 1 ? roadRadius : -roadRadius),
+            width: (Math.max(x1, x2) - Math.min(x1, x2)) + 2 * (dir === 0 ? -roadRadius : roadRadius),
+            height: (Math.max(y1, y2) - Math.min(y1, y2)) + 2 * (dir === 1 ? -roadRadius : roadRadius),
+            cssColor: "orange"
+          }));
+        }
+      }
+      scene.append(shiningRoad);
+      var intervalId = scene.setInterval(function(){
+        shiningRoad.opacity -= 0.01;
+        shiningRoad.modified();
+        if (shiningRoad.opacity <= 0) {
+          shiningRoad.destroy();
+          scene.clearInterval(intervalId);
+        }
+      }, 20);
+
+      if (eraseCount === 17 * 8 / 2) {
+      // 全消しおめですｗ
+        countErasable(scene, t, false); // ヒント表示を消すために一応呼び出す
+
+        if (remainTimeDecisec() > 0) { // 延長戦では無効にするために判定
+          var cnt = 7;
+          var aciid = scene.setInterval(function(){
+            speaker.playHaiAllClear(assetsScene, g.game.random);
+            cnt--;
+            if (cnt <= 0) {
+              scene.clearInterval(aciid);
+            }
+          }, 700);
+        }
+      } else if (countErasable(scene, t, false) == 0) {
+        t = shuffleBoard(scene, t, haiContainer, setOperable);
+        // countErasable(scene, t, false);
+        speaker.playHaiShuffle(assetsScene, g.game.random);
+      }
+
+    }
+
+    scene.message.add(function(msg) {
+      if (msg.data && msg.data.type === 'haiErase') {
+        console.log(msg);
+        if (!(msg.player.id in cmn.data.playerScore)) {
+          cmn.data.playerScore[msg.player.id] = 0;
+        }
+        cmn.data.playerScore[msg.player.id] += 1;
+        console.log(cmn.data.playerScore);
+        eraseHai(msg.data.pos1, msg.data.pos2, msg.data.path);
+      }
+    });
+
     // ここまでゲーム内容を記述します
   });
+
   return scene;
 };
+
+
 
 function toX(col) { return (col-1) * (cmn.HAI_DISPLAY_WIDTH + cmn.HAI_DISPLAY_MARGIN_X) + cmn.HAI_DISPLAY_WIDTH; }
 function toY(row) { return (row-1) * (cmn.HAI_DISPLAY_HEIGHT + cmn.HAI_DISPLAY_MARGIN_Y) + cmn.HAI_DISPLAY_HEIGHT * 0.7; }

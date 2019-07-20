@@ -15,9 +15,8 @@ function main() {
   var assetsScene = new g.Scene({
     game: g.game,
     assetIds: [
-      "version", "font16_1", "font16_1_glyph",
+      "font16_1", "font16_1_glyph",
       "manzu", "pinzu", "souzu", "jihai1", "jihai2",
-      "restart","search","ranking","giveup",
       "ne_aa1","ne_akan1","ne_akan2","ne_akan3","ne_akan4","ne_akan5","ne_akante","ne_e","ne_ee1",
       "ne_eeyan","ne_ha1","ne_honmanisore1","ne_kita1","ne_kore1","ne_kore2","ne_kore3","ne_koredesuwa1",
       "ne_majide1","ne_nerugia","ne_oosugoi1","ne_oreka1","ne_sugo1","ne_tanomu1","ne_tuyo1",
@@ -31,6 +30,26 @@ function main() {
       "ne_matometengni","ne_omaeyurusanzo","ne_ribenjisiteiku","ne_subuta","ne_touzen1",
       "ne_wantusuri","ne_zenzen"]
   });
+
+  // ゲームスコアの初期化
+  g.game.vars.gameState = { score: 0 };
+  // プレイヤーごとの消した回数
+  cmn.data.playerScore = {};
+  // 制限時間
+  cmn.data.gameTimeLimit = 8; // デフォルトの制限時間80秒
+  cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
+
+  assetsScene.message.add(function(msg) {
+    if (msg.data &&
+        msg.data.type === "start" &&
+        msg.data.parameters &&
+        msg.data.parameters.totalTimeLimit) {
+      // 制限時間を通知するイベントを受信した時点で初期化する
+      // ゲームのローディング時間を考慮し、7秒短くする
+      cmn.data.gameTimeLimit = msg.data.parameters.totalTimeLimit - 7;
+    }
+  });
+
   assetsScene.loaded.add(function () {
     g.game.pushScene(MainScene.create(assetsScene));
   });
