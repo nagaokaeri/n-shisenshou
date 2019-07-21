@@ -16,6 +16,7 @@ function main() {
     game: g.game,
     assetIds: [
       "font16_1", "font16_1_glyph",
+      "mplus1c_regular_jis1", "mplus1c_regular_jis1_glyph",
       "manzu", "pinzu", "souzu", "jihai1", "jihai2",
       'se_allclear','se_erase1','se_erase2','se_erase3','se_erase4','se_erase5','se_miss','se_select1','se_select2','se_select3',
     ]
@@ -26,11 +27,11 @@ function main() {
   // プレイヤーごとの消した回数
   cmn.data.playerScore = {};
   // 制限時間
-  cmn.data.gameTimeLimit = 800; // デフォルトの制限時間80秒
+  cmn.data.gameTimeLimit = 80; // デフォルトの制限時間80秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
   // 何も送られてこない時は、標準の乱数生成器を使う
   cmn.data.random = g.game.random;
-  cmn.data.localRandom = new g.XorshiftRandomGenerator(new Date().getTime());
+  cmn.data.localRandom = new g.XorshiftRandomGenerator(g.game.random.get(0,999999));
 
   assetsScene.message.add(function(msg) {
     if (msg.data && msg.data.type === "start" && msg.data.parameters) {

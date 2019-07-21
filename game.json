@@ -146,14 +146,23 @@
 			"path": "audio/se_erase5",
 			"systemId": "sound",
 			"duration": 929
+		},
+		"mplus1c_regular_jis1": {
+			"type": "image",
+			"width": 2048,
+			"height": 1024,
+			"path": "image/mplus1c_regular_jis1.png"
+		},
+		"mplus1c_regular_jis1_glyph": {
+			"type": "text",
+			"path": "text/mplus1c_regular_jis1_glyph.json"
 		}
 	},
 	"environment": {
 		"sandbox-runtime": "2",
 		"niconico": {
 			"supportedModes": [
-				"single",
-				"ranking"
+				"multi"
 			]
 		}
 	}
