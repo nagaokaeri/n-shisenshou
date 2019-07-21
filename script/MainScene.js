@@ -11,13 +11,13 @@ function create(assetsScene) {
     // ここからゲーム内容を記述します
 
     // 背景色を設定します。
-    var background1 = new g.FilledRect({
-      scene: scene,
-      cssColor: "forestgreen",
-      width: g.game.width,
-      height: g.game.height
-    });
-    scene.append(background1);
+    // var background1 = new g.FilledRect({
+    //   scene: scene,
+    //   cssColor: "forestgreen",
+    //   width: g.game.width,
+    //   height: g.game.height
+    // });
+    // scene.append(background1);
 
     // フォントを読込みます。
     // BitmapFont を生成

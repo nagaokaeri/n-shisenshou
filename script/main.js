@@ -28,7 +28,7 @@ function main() {
   cmn.data.playerScore = {};
   cmn.data.playerName = {};
   // 制限時間
-  cmn.data.gameTimeLimit = 80; // デフォルトの制限時間80秒
+  cmn.data.gameTimeLimit = 80 + 7; // デフォルトの制限時間80秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
   // 何も送られてこない時は、標準の乱数生成器を使う
   cmn.data.random = g.game.random;
