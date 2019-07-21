@@ -28,15 +28,22 @@ function main() {
   // 制限時間
   cmn.data.gameTimeLimit = 800; // デフォルトの制限時間80秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
+  // 何も送られてこない時は、標準の乱数生成器を使う
+  cmn.data.random = g.game.random;
+  cmn.data.localRandom = new g.XorshiftRandomGenerator(new Date().getTime());
 
   assetsScene.message.add(function(msg) {
-    if (msg.data &&
-        msg.data.type === "start" &&
-        msg.data.parameters &&
-        msg.data.parameters.totalTimeLimit) {
-      // 制限時間を通知するイベントを受信した時点で初期化する
-      // ゲームのローディング時間を考慮し、7秒短くする
-      cmn.data.gameTimeLimit = msg.data.parameters.totalTimeLimit - 7;
+    if (msg.data && msg.data.type === "start" && msg.data.parameters) {
+      if (msg.data.parameters.totalTimeLimit) {
+        // 制限時間を通知するイベントを受信した時点で初期化する
+        // ゲームのローディング時間を考慮し、7秒短くする
+        cmn.data.gameTimeLimit = msg.data.parameters.totalTimeLimit - 7;
+      }
+      if (msg.data.parameters.randomSeed != null) {
+        // プレイヤー間で共通の乱数生成器を生成
+        // `g.XorshiftRandomGenerator` は Akashic Engine の提供する乱数生成器実装で、 `g.game.random` と同じ型。
+        cmn.data.random = new g.XorshiftRandomGenerator(msg.data.parameters.randomSeed);
+      }
     }
   });
 
