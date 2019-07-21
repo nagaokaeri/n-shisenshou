@@ -298,6 +298,7 @@ function create(assetsScene) {
       if (msg.data && msg.data.type === 'haiErase') {
         if (!(msg.player.id in cmn.data.playerScore)) {
           cmn.data.playerScore[msg.player.id] = 0;
+          cmn.data.playerName[msg.player.id] = msg.player.name;
         }
         cmn.data.playerScore[msg.player.id] += 1;
         speaker.playHaiErase(assetsScene, cmn.data.random);
@@ -644,15 +645,15 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
 
 function displayResult(scene, assetsScene) {
 
-  var pane = new g.FilledRect({
+  scene.append(new g.FilledRect({
     scene: scene,
     cssColor: "black",
-    opacity: 0.5,
+    opacity: 0.7,
     width: g.game.width,
     height: g.game.height,
     x: 0,
     y: 0
-  });
+  }));
 
   // BitmapFont を生成
   var glyph = JSON.parse(assetsScene.assets["mplus1c_regular_jis1_glyph"].data);
@@ -669,8 +670,8 @@ function displayResult(scene, assetsScene) {
     font: font,
     textColor: "white",
     fontSize: 40,
-    x: g.game.width / 2 - 100,
-    y: g.game.height / 2 - 40,
+    x: 10,
+    y: 10,
     text: util.toZenkaku("スコア：" + g.game.vars.gameState.score),
   });
 
@@ -680,11 +681,39 @@ function displayResult(scene, assetsScene) {
     textColor: "white",
     fontSize: 40,
     x: g.game.width / 2 - 200,
-    y: g.game.height / 2 + 10,
+    y: g.game.height - 50,
     text: util.toZenkaku("あなたが消した回数：" + (cmn.data.playerScore[g.game.selfId] || 0)),
   });
 
-  scene.append(pane);
+  var scores = [];
+  for (var playerId in cmn.data.playerScore) {
+    if (cmn.data.playerScore[playerId] > 0) {
+      scores.push({
+        id: playerId,
+        score: cmn.data.playerScore[playerId],
+        name: cmn.data.playerName[playerId] || playerId
+      });
+    }
+  }
+  scores.sort(function(a,b){ return -(a.score - b.score); });
+  for (var i = 0; i < 5; i++) {
+    var text = '';
+    if (i < scores.length && scores[i].score > 0) {
+      text = (i+1)+"位："+ scores[i].score +"回　" + scores[i].name + "さん";
+    }
+
+    scene.append(new g.Label({
+      scene: scene,
+      font: font,
+      textColor: "white",
+      fontSize: 40,
+      x: 30,
+      y: 70 + 50 * (i),
+      text: util.toZenkaku(text)
+    }));
+  }
+
+
   scene.append(scoreLabel);
   scene.append(yourScoreLabel);
 
