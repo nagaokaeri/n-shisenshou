@@ -6,14 +6,8 @@ var speaker = require("./speaker");
 
 /** NOTE: このファイルで唯一の export 関数 */
 function create(assetsScene) {
-  var scene = new g.Scene({
-    game: g.game,
-    // このシーンで利用するアセットのIDを列挙し、シーンに通知します
-    assetIds: []
-  });
-
+  var scene = new g.Scene({ game: g.game });
   scene.loaded.add(function () {
-
     // ここからゲーム内容を記述します
 
     // 背景色を設定します。
@@ -63,7 +57,6 @@ function create(assetsScene) {
     }
     scene.append(scoreLabel);
 
-
     // 時間表示用ラベル
     var timerLabel = new g.Label({
       scene: scene,
@@ -93,14 +86,6 @@ function create(assetsScene) {
       return Math.floor(cmn.data.gameTimeLimit * 10 - cmn.data.frameCount / g.game.fps * 10);
     }
 
-    // 時間切れ後も続けるために、画面クリックで操作不能を解除
-    function goOvertime(ev){
-
-      scene.pointUpCapture.remove(goOvertime);
-
-      setOperable(true);
-    }
-
     function updateFrameCount() {
       ++cmn.data.frameCount;
     }
@@ -116,23 +101,7 @@ function create(assetsScene) {
 
         scene.update.remove(updateHandler); // タイムアウトになったら毎フレーム処理自体を止める
 
-        // スコアボードにスコア送信
-        if (typeof window !== "undefined" && window.RPGAtsumaru) {
-          window.RPGAtsumaru.experimental.scoreboards.setRecord(
-            cmn.SCORE_BOARD_ID,
-            g.game.vars.gameState.score // スコアを送信
-          ).then(function () {
-            // ok
-            // スコアボードを表示
-            window.RPGAtsumaru.experimental.scoreboards.display(cmn.SCORE_BOARD_ID);
-          }).catch(function (e) {
-            // ng
-          }).finally(function(){
-            goOvertime();
-          });
-        } else {
-          scene.pointUpCapture.add(goOvertime);
-        }
+        // TODO 結果画面を表示
 
       }
       updateTimerLabel();
@@ -162,11 +131,15 @@ function create(assetsScene) {
 
     // 麻雀牌を混ぜます
     var list = [];
-    for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("m" + i);
-    for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("p" + i);
-    for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("s" + i);
-    for (var i = 1; i <= 7; i++) for (var j = 0; j < 4; j++) list.push("z" + i);
-    // util.shuffle(list, g.game.random);
+    // for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("m" + i);
+    // for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("p" + i);
+    // for (var i = 1; i <= 9; i++) for (var j = 0; j < 4; j++) list.push("s" + i);
+    // for (var i = 1; i <= 7; i++) for (var j = 0; j < 4; j++) list.push("z" + i);
+    for (var i = 0; i < 8*17; i++) list.push('z5');
+    list[0] = 'm1';
+    list[1] = 'z2';
+    list[17] = 'z2';
+    list[18] = 'm1';
 
     var t = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
     for (var i = 0; i < cmn.BOARD_HEIGHT; i++) {
@@ -175,9 +148,9 @@ function create(assetsScene) {
           label: undefined,
           ref: undefined,
           selected: false,
-          overlay: false,
+          overlay: undefined,
           help: undefined
-        };
+        }
       }
     }
     t.selectedPos = undefined;
@@ -185,7 +158,6 @@ function create(assetsScene) {
     for (var row = 8; row >= 1; row--) {
       for (var col = 1; col <= 17; col++) {
         t[row][col].label = list[(row-1) * 17 + (col-1)];
-
         var img = createHaiImage(scene, assetsScene, t[row][col].label);
         img.y = toY(row);
         img.x = toX(col);
@@ -238,11 +210,6 @@ function create(assetsScene) {
 
               } else {
                 // 消せない
-                // 減点する
-                if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
-                  g.game.vars.gameState.score = Math.max(0, g.game.vars.gameState.score - 1);
-                  updateScoreLabel();
-                }
 
                 // 失敗音を鳴らす
                 speaker.playHaiMiss(assetsScene, g.game.random);
@@ -268,6 +235,7 @@ function create(assetsScene) {
               y: thisImg.y - cmn.HAI_DISPLAY_MARGIN_Y,
               width: thisImg.width,
               height:  thisImg.height + cmn.HAI_DISPLAY_MARGIN_Y,
+              local: true,
               opacity: 0.25,
               cssColor: "green"
             });
@@ -288,7 +256,8 @@ function create(assetsScene) {
 
     setOperable(false); // 最初は操作不可
     scene.setTimeout(function() {
-      t = shuffleBoard(scene, t, haiContainer, setOperable);
+      // t = shuffleBoard(scene, t, haiContainer, setOperable);
+      setOperable(true);
       // countErasable(scene, t, false);
     }, 600);
 
@@ -309,11 +278,7 @@ function create(assetsScene) {
 
       eraseCount++;
       if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
-        g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
-        // 全消ししたら点数追加（残り時間）
-        if (eraseCount === 17 * 8 / 2) {
-          g.game.vars.gameState.score += remainTimeDecisec();
-        }
+        g.game.vars.gameState.score += 10 * (1 + Math.floor(eraseCount/5));
         updateScoreLabel();
       }
 
@@ -357,23 +322,14 @@ function create(assetsScene) {
       }, 20);
 
       if (eraseCount === 17 * 8 / 2) {
-      // 全消しおめですｗ
-        countErasable(scene, t, false); // ヒント表示を消すために一応呼び出す
-
-        if (remainTimeDecisec() > 0) { // 延長戦では無効にするために判定
-          var cnt = 7;
-          var aciid = scene.setInterval(function(){
-            speaker.playHaiAllClear(assetsScene, g.game.random);
-            cnt--;
-            if (cnt <= 0) {
-              scene.clearInterval(aciid);
-            }
-          }, 700);
-        }
-      } else if (countErasable(scene, t, false) == 0) {
+        // 全消しおめですｗ
+        // 時間がある間ゲームを最初から繰り返す
+        g.game.replaceScene(create(assetsScene));
+      // } else if (countErasable(scene, t, false) == 0) {
+      } else if (countErasable(scene, t, true) == 0) {
         t = shuffleBoard(scene, t, haiContainer, setOperable);
         // countErasable(scene, t, false);
-        speaker.playHaiShuffle(assetsScene, g.game.random);
+        // speaker.playHaiShuffle(assetsScene, g.game.random);
       }
 
     }
@@ -660,44 +616,50 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
 
   setOperable(false); // 処理中は操作させない
 
-  var list = [];
-  var old_pos = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
-  var new_t = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
+  var old_pos, new_t;
+  while (true) {
+    var list = [];
+    old_pos = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
+    new_t = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
 
-  t.selectedPos = undefined;
-  new_t.selectedPos = undefined;
+    t.selectedPos = undefined;
+    new_t.selectedPos = undefined;
 
-  for (var row = 0; row < cmn.BOARD_HEIGHT; row++) {
-    for (var col = 0; col < cmn.BOARD_WIDTH; col++) {
-      var ti = t[row][col];
-      if (ti.label) {
-        list.push({row: row, col: col});
-        if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
-        if (ti.hint) { util.destroyAll(ti.hint); ti.hint = []; }
-        ti.selected = false;
-      } else {
-        new_t[row][col] = t[row][col];
+    for (var row = 0; row < cmn.BOARD_HEIGHT; row++) {
+      for (var col = 0; col < cmn.BOARD_WIDTH; col++) {
+        var ti = t[row][col];
+        if (ti.label) {
+          list.push({row: row, col: col});
+          if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
+          if (ti.hint) { util.destroyAll(ti.hint); ti.hint = []; }
+          ti.selected = false;
+        } else {
+          new_t[row][col] = t[row][col];
+        }
       }
     }
-  }
-  util.shuffle(list, g.game.random);
-  var i = 0;
-  for (var row = cmn.BOARD_HEIGHT - 1; row >= 0; row--) {
-    for (var col = 0; col < cmn.BOARD_WIDTH; col++) {
-      if (!new_t[row][col]) {
-        var old_row = list[i].row;
-        var old_col = list[i].col;
-        i++;
-        new_t[row][col] = t[old_row][old_col];
-        var img = new_t[row][col].ref;
-        img.tag.row = row;
-        img.tag.col = col;
-        old_pos[row][col] = { x: img.x, y: img.y };
-        // 入れなおすことで表示順番を変更
-        haiContainer.remove(img);
-        haiContainer.append(img);
+    if (list.length === 0) break;
+    util.shuffle(list, g.game.random);
+    var i = 0;
+    for (var row = cmn.BOARD_HEIGHT - 1; row >= 0; row--) {
+      for (var col = 0; col < cmn.BOARD_WIDTH; col++) {
+        if (!new_t[row][col]) {
+          var old_row = list[i].row;
+          var old_col = list[i].col;
+          i++;
+          new_t[row][col] = t[old_row][old_col];
+          var img = new_t[row][col].ref;
+          img.tag.row = row;
+          img.tag.col = col;
+          old_pos[row][col] = { x: img.x, y: img.y };
+          // 入れなおすことで表示順番を変更
+          haiContainer.remove(img);
+          haiContainer.append(img);
+        }
       }
     }
+
+    if (countErasable(null, new_t, false) > 0) break;
   }
 
   var N = 8, n = N;
