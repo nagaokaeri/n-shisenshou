@@ -23,3 +23,7 @@ module.exports.playHaiMiss = function(scene, random) {
 module.exports.playHaiAllClear = function(scene, random) {
   play(scene, util.choice(["se_allclear"], random));
 };
+
+module.exports.playEnd = function(scene, random) {
+  play(scene, util.choice(["se_end"], random));
+};

@@ -82,6 +82,8 @@ function create(assetsScene) {
         setOperable(false);
         countErasable(scene, t, true); // ゲーム終了後、消せる場所を表示
 
+        speaker.playEnd(assetsScene, cmn.data.localRandom);
+
         scene.update.remove(updateHandler); // タイムアウトになったら毎フレーム処理自体を止める
 
         // 結果画面を表示
@@ -672,7 +674,7 @@ function displayResult(scene, assetsScene) {
     fontSize: 40,
     x: 10,
     y: 10,
-    text: util.toZenkaku("スコア：" + g.game.vars.gameState.score),
+    text: util.toZenkaku("スコア：" + g.game.vars.gameState.score)
   });
 
   var yourScoreLabel = new g.Label({
@@ -682,7 +684,7 @@ function displayResult(scene, assetsScene) {
     fontSize: 40,
     x: g.game.width / 2 - 200,
     y: g.game.height - 50,
-    text: util.toZenkaku("あなたが消した回数：" + (cmn.data.playerScore[g.game.selfId] || 0)),
+    text: util.toZenkaku("あなたが消した回数：" + (cmn.data.playerScore[g.game.selfId] || 0))
   });
 
   var scores = [];

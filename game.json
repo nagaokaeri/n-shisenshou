@@ -156,6 +156,12 @@
 		"mplus1c_regular_jis1_glyph": {
 			"type": "text",
 			"path": "text/mplus1c_regular_jis1_glyph.json"
+		},
+		"se_end": {
+			"type": "audio",
+			"path": "audio/se_end",
+			"systemId": "sound",
+			"duration": 1556
 		}
 	},
 	"environment": {

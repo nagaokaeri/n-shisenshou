@@ -18,7 +18,7 @@ function main() {
       "font16_1", "font16_1_glyph",
       "mplus1c_regular_jis1", "mplus1c_regular_jis1_glyph",
       "manzu", "pinzu", "souzu", "jihai1", "jihai2",
-      'se_allclear','se_erase1','se_erase2','se_erase3','se_erase4','se_erase5','se_miss','se_select1','se_select2','se_select3',
+      'se_allclear','se_erase1','se_erase2','se_erase3','se_erase4','se_erase5','se_miss','se_select1','se_select2','se_select3',"se_end"
     ]
   });
 
