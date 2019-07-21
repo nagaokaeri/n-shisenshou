@@ -17,18 +17,8 @@ function main() {
     assetIds: [
       "font16_1", "font16_1_glyph",
       "manzu", "pinzu", "souzu", "jihai1", "jihai2",
-      "ne_aa1","ne_akan1","ne_akan2","ne_akan3","ne_akan4","ne_akan5","ne_akante","ne_e","ne_ee1",
-      "ne_eeyan","ne_ha1","ne_honmanisore1","ne_kita1","ne_kore1","ne_kore2","ne_kore3","ne_koredesuwa1",
-      "ne_majide1","ne_nerugia","ne_oosugoi1","ne_oreka1","ne_sugo1","ne_tanomu1","ne_tuyo1",
-      "ne_tyotyotyotyo","ne_usi1","ne_uso1","ne_uso3","ne_usouso1","ne_usousouso1","ne_uwa1",
-      "ne_yatta1","ne_yurusanzo1","ne_ai1","ne_eseitekini","ne_good","ne_honmani","ne_horaa1",
-      "ne_horaa2","ne_imanomita","ne_kitayo","ne_kitayo2","ne_korekore","ne_korezettaikore",
-      "ne_maashouganai","ne_majide2","ne_minna","ne_nigasukayo","ne_okkei","ne_onashasu",
-      "ne_oredato","ne_oseisida","ne_tanomuu","ne_tinko","ne_w","ne_zettaituyoi","ne_itii1",
-      "ne_doremi","ne_doya1","ne_hayakumo","ne_kitigai","ne_reberuga","ne_uieeeee","ne_usoyaba",
-      "ne_yameruka","ne_akui1","ne_atamaokasinarudekonoanime","ne_majikayamaikuka",
-      "ne_matometengni","ne_omaeyurusanzo","ne_ribenjisiteiku","ne_subuta","ne_touzen1",
-      "ne_wantusuri","ne_zenzen"]
+      'se_allclear','se_erase1','se_erase2','se_erase3','se_erase4','se_erase5','se_miss','se_select1','se_select2','se_select3',
+    ]
   });
 
   // ゲームスコアの初期化
@@ -36,7 +26,7 @@ function main() {
   // プレイヤーごとの消した回数
   cmn.data.playerScore = {};
   // 制限時間
-  cmn.data.gameTimeLimit = 8; // デフォルトの制限時間80秒
+  cmn.data.gameTimeLimit = 800; // デフォルトの制限時間80秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
 
   assetsScene.message.add(function(msg) {

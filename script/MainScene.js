@@ -147,8 +147,7 @@ function create(assetsScene) {
         t[i][j] = {
           label: undefined,
           ref: undefined,
-          selected: false,
-          overlay: undefined,
+          overlay: undefined, // truthly のときその牌が選択状態であることを表す
           help: undefined
         }
       }
@@ -163,7 +162,6 @@ function create(assetsScene) {
         img.x = toX(col);
         img.touchable = true;
         img.local = true;
-
         img.tag = {
           row: row,
           col: col
@@ -176,11 +174,9 @@ function create(assetsScene) {
           var ti = t[thisImg.tag.row][thisImg.tag.col]; // 今クリックされた牌
           if (t.selectedPos) {
             var si = t[t.selectedPos.row][t.selectedPos.col]; // ひとつ前にクリックされた牌
-            if (ti.selected) {
+            if (ti.overlay) {
               // 同一の牌をもういちど選択したら、選択解除
-              si.overlay.destroy();
-              si.overlay = undefined;
-              si.selected = false;
+              si.overlay.destroy(); si.overlay = undefined;
               t.selectedPos = undefined;
             } else {
               // 異なる２つの牌を選択した
@@ -189,12 +185,6 @@ function create(assetsScene) {
               var path = calcPath(t, t.selectedPos, {row:thisImg.tag.row, col:thisImg.tag.col});
               if (path.length > 0) {
                 // 消せた。
-
-                if (ti.label === 'z4')
-                  speaker.playHaiSelectZ4(assetsScene, g.game.random);
-                else
-                  speaker.playHaiErase(assetsScene, g.game.random);
-
                 g.game.raiseEvent(new g.MessageEvent({
                   type: 'haiErase',
                   pos1: {
@@ -215,19 +205,14 @@ function create(assetsScene) {
                 speaker.playHaiMiss(assetsScene, g.game.random);
 
                 // 選択解除する
-                si.overlay.destroy();
-                si.overlay = undefined;
-                si.selected = false;
+                si.overlay.destroy(); si.overlay = undefined;
                 t.selectedPos = undefined;
               }
             }
           } else {
             // 1牌目を選択した
 
-            if (ti.label === 'z4')
-              speaker.playHaiSelectZ4(assetsScene, g.game.random);
-            else
-              speaker.playHaiSelect(assetsScene, g.game.random);
+            speaker.playHaiSelect(assetsScene, g.game.random);
 
             var rect = new g.FilledRect({
               scene: scene,
@@ -241,7 +226,6 @@ function create(assetsScene) {
             });
             scene.append(rect);
             ti.overlay = rect;
-            ti.selected = true;
             t.selectedPos = {
               row: thisImg.tag.row,
               col: thisImg.tag.col
@@ -324,12 +308,13 @@ function create(assetsScene) {
       if (eraseCount === 17 * 8 / 2) {
         // 全消しおめですｗ
         // 時間がある間ゲームを最初から繰り返す
+        speaker.playHaiAllClear(assetsScene, g.game.random);
         g.game.replaceScene(create(assetsScene));
+
       // } else if (countErasable(scene, t, false) == 0) {
       } else if (countErasable(scene, t, true) == 0) {
         t = shuffleBoard(scene, t, haiContainer, setOperable);
         // countErasable(scene, t, false);
-        // speaker.playHaiShuffle(assetsScene, g.game.random);
       }
 
     }
@@ -342,6 +327,7 @@ function create(assetsScene) {
         }
         cmn.data.playerScore[msg.player.id] += 1;
         console.log(cmn.data.playerScore);
+        speaker.playHaiErase(assetsScene, g.game.random);
         eraseHai(msg.data.pos1, msg.data.pos2, msg.data.path);
       }
     });
@@ -632,7 +618,6 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
           list.push({row: row, col: col});
           if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
           if (ti.hint) { util.destroyAll(ti.hint); ti.hint = []; }
-          ti.selected = false;
         } else {
           new_t[row][col] = t[row][col];
         }
