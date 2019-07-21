@@ -280,7 +280,7 @@ function create(assetsScene) {
           shiningRoad.destroy();
           scene.clearInterval(intervalId);
         }
-      }, 20);
+      }, 50);
 
       if (eraseCount === 17 * 8 / 2) {
         // 全消しおめですｗ
