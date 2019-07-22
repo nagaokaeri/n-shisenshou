@@ -235,7 +235,12 @@ function create(assetsScene) {
       if (si.ref) { si.ref.destroy(); si.ref = undefined; }
       si.label = undefined;
 
-      t.selectedPos = undefined;
+      if (t.selectedPos) {
+        if ((t.selectedPos.row === pos1.row && t.selectedPos.col === pos1.col) ||
+            (t.selectedPos.row === pos2.row && t.selectedPos.col === pos2.col)) {
+          t.selectedPos = undefined;
+        }
+      }
 
       eraseCount++;
       if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
@@ -579,7 +584,7 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
   setOperable(false); // 処理中は操作させない
 
   var old_pos, new_t;
-  for (var iter = 0; iter < 100; iter++) { // 無限ループはしないはずだが念のため一定回数で抜ける。
+  for (var iter = 0; iter < 30; iter++) { // 無限ループはしないはずだが念のため一定回数で抜ける。
     var list = [];
     old_pos = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
     new_t = util.createArray(cmn.BOARD_HEIGHT, cmn.BOARD_WIDTH);
