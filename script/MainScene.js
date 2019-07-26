@@ -227,26 +227,30 @@ function create(assetsScene) {
       var ti = t[pos2.row][pos2.col]; // 今クリックされた牌
       var si = t[pos1.row][pos1.col]; // ひとつ前にクリックされた牌
 
-      if (ti.label && si.label) { // マルチプレイでほぼ同時に牌がとられた場合のために判定入れておく
-        eraseCount++;
-        g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
-        updateScoreLabel();
-      }
-
-      if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
-      if (ti.ref) { ti.ref.destroy(); ti.ref = undefined; }
-      ti.label = undefined;
-
-      if (si.overlay) { si.overlay.destroy(); si.overlay = undefined; }
-      if (si.ref) { si.ref.destroy(); si.ref = undefined; }
-      si.label = undefined;
-
       if (t.selectedPos) {
         if ((t.selectedPos.row === pos1.row && t.selectedPos.col === pos1.col) ||
             (t.selectedPos.row === pos2.row && t.selectedPos.col === pos2.col)) {
           t.selectedPos = undefined;
         }
       }
+      if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
+      if (si.overlay) { si.overlay.destroy(); si.overlay = undefined; }
+
+      // マルチプレイでほぼ同時に牌がとられた場合のために判定入れておく
+      var legal = ti.label && si.label && ti.label === si.label && calcPath(t, pos1, pos2).length >= 2;
+      if (!legal) {
+        return t;
+      }
+
+      eraseCount++;
+      g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
+      updateScoreLabel();
+
+      if (ti.ref) { ti.ref.destroy(); ti.ref = undefined; }
+      ti.label = undefined;
+
+      if (si.ref) { si.ref.destroy(); si.ref = undefined; }
+      si.label = undefined;
 
       var shiningRoad = new g.E({ scene: scene, opacity: 0.50 });
       var roadRadius = 2;
