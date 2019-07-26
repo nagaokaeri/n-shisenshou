@@ -305,7 +305,6 @@ function create(assetsScene) {
       if (msg.data && msg.data.type === 'haiErase') {
         if (!(msg.player.id in cmn.data.playerScore)) {
           cmn.data.playerScore[msg.player.id] = 0;
-          cmn.data.playerName[msg.player.id] = msg.player.name;
         }
         cmn.data.playerScore[msg.player.id] += 1;
         speaker.playHaiErase(assetsScene, cmn.data.random);
@@ -697,8 +696,7 @@ function displayResult(scene, assetsScene) {
     if (cmn.data.playerScore[playerId] > 0) {
       scores.push({
         id: playerId,
-        score: cmn.data.playerScore[playerId],
-        name: cmn.data.playerName[playerId] || playerId
+        score: cmn.data.playerScore[playerId]
       });
     }
   }
@@ -706,7 +704,7 @@ function displayResult(scene, assetsScene) {
   for (var i = 0; i < 5; i++) {
     var text = '';
     if (i < scores.length && scores[i].score > 0) {
-      text = (i+1)+"位："+ scores[i].score +"回　" + scores[i].name + "さん";
+      text = (i+1)+"位："+ scores[i].score +"回　" + util.trip(scores[i].id) + "さん";
     }
 
     scene.append(new g.Label({

@@ -26,7 +26,6 @@ function main() {
   g.game.vars.gameState = { score: 0 };
   // プレイヤーごとの消した回数
   cmn.data.playerScore = {};
-  cmn.data.playerName = {};
   // 制限時間
   cmn.data.gameTimeLimit = 60 + 7; // デフォルトの制限時間60秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
