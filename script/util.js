@@ -43,9 +43,10 @@ module.exports.toZenkaku = function(s) {
 
 var alphabets = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 module.exports.trip = function(s) {
+  s = String(s);
   var h = 0;
   for (var i = 0; i < s.length; i++) {
-    h = (h * 10007 + s.charCodeAt(i)) % 2147483648;
+    h = (h * 10007 + 1 + s.charCodeAt(i)) % 2147483648;
   }
   var rnd = new g.XorshiftRandomGenerator(h);
   var t = '◆';
