@@ -704,7 +704,7 @@ function displayResult(scene, assetsScene) {
   for (var i = 0; i < 5; i++) {
     var text = '';
     if (i < scores.length && scores[i].score > 0) {
-      text = (i+1)+"位："+ scores[i].score +"回　" + util.trip(scores[i].id) + "さん";
+      text = (i+1)+"位："+ util.paddingLeft(scores[i].score, 3, ' ') +"回　" + util.trip(scores[i].id) + "さん";
     }
 
     scene.append(new g.Label({
