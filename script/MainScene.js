@@ -227,6 +227,12 @@ function create(assetsScene) {
       var ti = t[pos2.row][pos2.col]; // 今クリックされた牌
       var si = t[pos1.row][pos1.col]; // ひとつ前にクリックされた牌
 
+      if (ti.label && si.label) { // マルチプレイでほぼ同時に牌がとられた場合のために判定入れておく
+        eraseCount++;
+        g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
+        updateScoreLabel();
+      }
+
       if (ti.overlay) { ti.overlay.destroy(); ti.overlay = undefined; }
       if (ti.ref) { ti.ref.destroy(); ti.ref = undefined; }
       ti.label = undefined;
@@ -240,12 +246,6 @@ function create(assetsScene) {
             (t.selectedPos.row === pos2.row && t.selectedPos.col === pos2.col)) {
           t.selectedPos = undefined;
         }
-      }
-
-      eraseCount++;
-      if (remainTimeDecisec() > 0) { // 延長戦では点数を動かさないために残り時間を判定
-        g.game.vars.gameState.score += 100 * (1 + Math.floor(eraseCount/5));
-        updateScoreLabel();
       }
 
       var shiningRoad = new g.E({ scene: scene, opacity: 0.50 });
@@ -299,7 +299,7 @@ function create(assetsScene) {
         // countErasable(scene, t, false);
       }
       return t;
-    }
+    };
 
     scene.message.add(function(msg) {
       if (msg.data && msg.data.type === 'haiErase') {
