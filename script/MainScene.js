@@ -299,10 +299,7 @@ function create(assetsScene) {
               if (path.length > 0) {
                 // 消せた。
 
-                if (ti.label === 'z4')
-                  speaker.playHaiSelectZ4(assetsScene, g.game.random);
-                else
-                  speaker.playHaiErase(assetsScene, g.game.random);
+                speaker.playHaiErase(assetsScene, g.game.random);
 
                 ti.ref.destroy(); ti.ref = undefined;
                 ti.label = undefined;
@@ -401,10 +398,7 @@ function create(assetsScene) {
           } else {
             // 1牌目を選択した
 
-            if (ti.label === 'z4')
-              speaker.playHaiSelectZ4(assetsScene, g.game.random);
-            else
-              speaker.playHaiSelect(assetsScene, g.game.random);
+            speaker.playHaiSelect(assetsScene, g.game.random);
 
             var rect = new g.FilledRect({
               scene: scene,
