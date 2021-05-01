@@ -11,13 +11,13 @@ function create(assetsScene) {
     // ここからゲーム内容を記述します
 
     // 背景色を設定します。
-    // var background1 = new g.FilledRect({
-    //   scene: scene,
-    //   cssColor: "forestgreen",
-    //   width: g.game.width,
-    //   height: g.game.height
-    // });
-    // scene.append(background1);
+    var background1 = new g.FilledRect({
+      scene: scene,
+      cssColor: "forestgreen",
+      width: g.game.width,
+      height: g.game.height
+    });
+    scene.append(background1);
 
     // フォントを読込みます。
     // BitmapFont を生成
@@ -28,6 +28,15 @@ function create(assetsScene) {
       defaultGlyphWidth: glyph.width,
       defaultGlyphHeight: glyph.height,
       missingGlyph: glyph.missingGlyph
+    });
+    // BitmapFont を生成
+    var glyph2 = JSON.parse(assetsScene.assets["mplus1c_regular_jis1_glyph"].data);
+    var font2 = new g.BitmapFont({
+      src: assetsScene.assets["mplus1c_regular_jis1"],
+      map: glyph2.map,
+      defaultGlyphWidth: glyph2.width,
+      defaultGlyphHeight: glyph2.height,
+      missingGlyph: glyph2.missingGlyph
     });
 
     /** 牌を消すごとに +1 される */
@@ -57,16 +66,33 @@ function create(assetsScene) {
       y: 0
     });
     scene.append(timerLabel);
+    // 残り時間バー
+    var timerBarMaxWidth = 620
+    var timerBar = new g.FilledRect({
+      scene: scene,
+      cssColor: "orange",
+      width: 0,
+      height: 10,
+      x: 36,
+      y: 420
+    });
+    scene.append(timerBar);
     function updateTimerLabel() {
       var s = Math.max(0, remainTimeDecisec());
       var text = s / 10 + (s % 10 === 0 ? ".0" : "");
       if (timerLabel.text != text) {
         timerLabel.text = text;
         timerLabel.invalidate();
+        // 残り時間バーも更新
+        var ratio = remainTimeRatio();
+        timerBar.width = timerBarMaxWidth * ratio;
       }
     }
     function remainTimeDecisec() {
       return Math.floor(cmn.data.gameTimeLimit * 10 - cmn.data.frameCount / g.game.fps * 10);
+    }
+    function remainTimeRatio() {
+      return Math.max(0, remainTimeDecisec()) / (cmn.data.gameTimeLimit * 10);
     }
 
     function updateFrameCount() {
@@ -222,7 +248,7 @@ function create(assetsScene) {
       // countErasable(scene, t, false);
     }, 600);
 
-    function eraseHai(pos1, pos2, path)  {
+    function eraseHai(pos1, pos2, path, playerId)  {
 
       var ti = t[pos2.row][pos2.col]; // 今クリックされた牌
       var si = t[pos1.row][pos1.col]; // ひとつ前にクリックされた牌
@@ -291,6 +317,27 @@ function create(assetsScene) {
         }
       }, 50);
 
+      var honorLabel = new g.Label({
+        scene: scene,
+        font: font2,
+        fontSize: 20,
+        textColor: "red",
+        text: util.toZenkaku("" + playerId),
+        opacity: 0.9,
+        x: toX(path[path.length-1].col),
+        y: toY(path[path.length-1].row)
+      });
+      scene.append(honorLabel);
+      var intervalId2 = scene.setInterval(function(){
+        honorLabel.opacity -= 0.01 * 0.9 / 0.5;
+        honorLabel.y -= 0.6;
+        honorLabel.modified();
+        if (honorLabel.opacity <= 0) {
+          honorLabel.destroy();
+          scene.clearInterval(intervalId2);
+        }
+      }, 50);
+
       if (eraseCount === 17 * 8 / 2) {
         // 全消しおめですｗ
         // 時間がある間ゲームを最初から繰り返す
@@ -312,7 +359,7 @@ function create(assetsScene) {
         }
         cmn.data.playerScore[msg.player.id] += 1;
         speaker.playHaiErase(assetsScene, cmn.data.random);
-        t = eraseHai(msg.data.pos1, msg.data.pos2, msg.data.path);
+        t = eraseHai(msg.data.pos1, msg.data.pos2, msg.data.path, msg.player.id);
       }
     });
 
@@ -708,7 +755,7 @@ function displayResult(scene, assetsScene) {
   for (var i = 0; i < 5; i++) {
     var text = '';
     if (i < scores.length && scores[i].score > 0) {
-      text = (i+1)+"位："+ util.paddingLeft(scores[i].score, 3, ' ') +"回　" + util.trip(scores[i].id) + "さん";
+      text = (i+1)+"位："+ util.paddingLeft(scores[i].score, 3, ' ') +"回　" + (scores[i].id) + "さん";
     }
 
     scene.append(new g.Label({
