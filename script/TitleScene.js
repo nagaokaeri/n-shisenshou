@@ -56,6 +56,7 @@ function create(assetsScene) {
         y: 6,
         font: cmn.data.font2,
         textColor: 'white',
+        fontSize: 24,
         text: "名前登録"
       })
     );
@@ -75,6 +76,7 @@ function create(assetsScene) {
       y: 150 + 6,
       font: cmn.data.font2,
       textColor: 'white',
+      fontSize: 24,
       text: ""
     });
     scene.append(nameLabel);
@@ -94,6 +96,7 @@ function create(assetsScene) {
         x: 8,
         y: 6,
         font: cmn.data.font2,
+        fontSize: 24,
         textColor: 'white',
         text: "ゲーム開始"
       })
