@@ -759,8 +759,9 @@ function displayResult(scene) {
     text: "戻る"
   }));
   backButton.onPointDown.add(function(ev) {
-    if (cmn.data.gameMasterId !== ev.player.id) return; // 生放送主だけがボタンを押せるようにする
-    g.game.popScene();
+    if (cmn.data.env === 'atsumaru' || cmn.data.gameMasterId === ev.player.id) { // 生放送主だけがボタンを押せるようにする
+      g.game.popScene();
+    }
   });
 
   scene.append(scoreLabel);

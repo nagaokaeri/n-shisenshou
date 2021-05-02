@@ -35,9 +35,12 @@ function main() {
   cmn.data.random = g.game.random;
   cmn.data.localRandom = new g.XorshiftRandomGenerator(g.game.random.get(0,2147483647));
 
-  // 最初にJoinした人の ID をゲームマスターの ID として覚え、以後使うようにします。
+  // ニコ生ゲームの場合は最初に配信者だけがJoinする。最初にJoinした人の ID をゲームマスターの ID として覚え、以後使う。
+  // アツマールで遊ぶ場合は誰もJoinしないため、それをもってニコ生かアツマールかを判別する。
+  cmn.data.env = 'atsumaru';
   g.game.join.addOnce(function(ev){
     cmn.data.gameMasterId = ev.player.id;
+    cmn.data.env = 'nicolive';
   });
 
   assetsScene.message.add(function(msg) {

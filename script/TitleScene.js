@@ -99,11 +99,12 @@ function create(assetsScene) {
       })
     );
     startButton.onPointDown.add(function(ev){
-      if (cmn.data.gameMasterId !== ev.player.id) return; // 生放送主だけがボタンを押せるようにする
-      g.game.vars.gameState.score = 0;
-      cmn.data.playerScore = {};
-      cmn.data.frameCount = 0;
-      g.game.pushScene(MainScene.create(assetsScene));
+      if (cmn.data.env === 'atsumaru' || cmn.data.gameMasterId === ev.player.id) { // 生放送主だけがボタンを押せるようにする
+        g.game.vars.gameState.score = 0;
+        cmn.data.playerScore = {};
+        cmn.data.frameCount = 0;
+        g.game.pushScene(MainScene.create(assetsScene));
+      }
     });
     scene.append(startButton);
 
