@@ -1,4 +1,4 @@
-var MainScene = require("./MainScene");
+var TitleScene = require("./TitleScene");
 var cmn = require("./Common");
 
 function main() {
@@ -26,12 +26,19 @@ function main() {
   g.game.vars.gameState = { score: 0 };
   // プレイヤーごとの消した回数
   cmn.data.playerScore = {};
+  // playerId から playerName へのマップ
+  cmn.data.nameTable = {};
   // 制限時間
   cmn.data.gameTimeLimit = 60 + 7; // デフォルトの制限時間60秒
   cmn.data.frameCount = 0; // 経過時間をフレーム単位で記録
   // 何も送られてこない時は、標準の乱数生成器を使う
   cmn.data.random = g.game.random;
-  cmn.data.localRandom = new g.XorshiftRandomGenerator(g.game.random.get(0,999999));
+  cmn.data.localRandom = new g.XorshiftRandomGenerator(g.game.random.get(0,2147483647));
+
+  // 最初にJoinした人の ID をゲームマスターの ID として覚え、以後使うようにします。
+  g.game.join.addOnce(function(ev){
+    cmn.data.gameMasterId = ev.player.id;
+  });
 
   assetsScene.message.add(function(msg) {
     if (msg.data && msg.data.type === "start" && msg.data.parameters) {
@@ -48,8 +55,31 @@ function main() {
     }
   });
 
-  assetsScene.loaded.add(function () {
-    g.game.pushScene(MainScene.create(assetsScene));
+  assetsScene.onLoad.add(function () {
+    // フォントを読込みます。
+    // BitmapFont を生成
+    var glyph = JSON.parse(assetsScene.assets["font16_1_glyph"].data);
+    var font = new g.BitmapFont({
+      src: assetsScene.assets["font16_1"],
+      map: glyph.map,
+      defaultGlyphWidth: glyph.width,
+      defaultGlyphHeight: glyph.height,
+      missingGlyph: glyph.missingGlyph
+    });
+    cmn.data.font = font;
+
+    // BitmapFont を生成
+    var glyph2 = JSON.parse(assetsScene.assets["mplus1c_regular_jis1_glyph"].data);
+    var font2 = new g.BitmapFont({
+      src: assetsScene.assets["mplus1c_regular_jis1"],
+      map: glyph2.map,
+      defaultGlyphWidth: glyph2.width,
+      defaultGlyphHeight: glyph2.height,
+      missingGlyph: glyph2.missingGlyph
+    });
+    cmn.data.font2 = font2;
+
+    g.game.pushScene(TitleScene.create(assetsScene));
   });
   g.game.pushScene(assetsScene);
 }

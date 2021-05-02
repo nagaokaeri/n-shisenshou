@@ -36,6 +36,7 @@ var dict = {
   '<': '＜', '=': '＝', '>': '＞', '?': '？', '@': '＠', '[': '［', '\\': '＼', ']': '］', '^': '＾'
 };
 module.exports.toZenkaku = function(s) {
+  s = "" + s;
   var res = "";
   for (var i = 0; i < s.length; i++) {
     var newChar = (s[i] in dict) ? dict[s[i]] : s[i];
@@ -43,6 +44,11 @@ module.exports.toZenkaku = function(s) {
   }
   return res;
 };
+
+module.exports.nullToDefault = function(val, defaultValue) {
+  if (val === null || val === undefined) return defaultValue;
+  return val;
+}
 
 module.exports.paddingLeft = function(s, len, ch) {
   s = String(s);

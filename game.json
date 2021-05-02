@@ -69,6 +69,11 @@
 			"path": "script/MainScene.js",
 			"global": true
 		},
+		"TitleScene": {
+			"type": "script",
+			"path": "script/TitleScene.js",
+			"global": true
+		},
 		"restart": {
 			"type": "image",
 			"width": 64,

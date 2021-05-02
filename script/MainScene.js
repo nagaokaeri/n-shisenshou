@@ -4,15 +4,10 @@ var cmn = require("./Common");
 var util = require("./util");
 var speaker = require("./speaker");
 
-var resolvePlayerInfo = require("@akashic-extension/resolve-player-info").resolvePlayerInfo;
-
-/** playerId から playerName への map */
-var nameTable = {};
-
 /** NOTE: このファイルで唯一の export 関数 */
 function create(assetsScene) {
   var scene = new g.Scene({ game: g.game });
-  scene.loaded.add(function () {
+  scene.onLoad.add(function () {
     // ここからゲーム内容を記述します
 
     // 背景色を設定します。
@@ -24,32 +19,12 @@ function create(assetsScene) {
     });
     scene.append(background1);
 
-    // フォントを読込みます。
-    // BitmapFont を生成
-    var glyph = JSON.parse(assetsScene.assets["font16_1_glyph"].data);
-    var font = new g.BitmapFont({
-      src: assetsScene.assets["font16_1"],
-      map: glyph.map,
-      defaultGlyphWidth: glyph.width,
-      defaultGlyphHeight: glyph.height,
-      missingGlyph: glyph.missingGlyph
-    });
-    // BitmapFont を生成
-    var glyph2 = JSON.parse(assetsScene.assets["mplus1c_regular_jis1_glyph"].data);
-    var font2 = new g.BitmapFont({
-      src: assetsScene.assets["mplus1c_regular_jis1"],
-      map: glyph2.map,
-      defaultGlyphWidth: glyph2.width,
-      defaultGlyphHeight: glyph2.height,
-      missingGlyph: glyph2.missingGlyph
-    });
-
     /** 牌を消すごとに +1 される */
     var eraseCount = 0;
     /** 点数表示のラベル */
     var scoreLabel = new g.Label({
       scene: scene,
-      font: font,
+      font: cmn.data.font,
       fontSize: 20,
       x: g.game.width - 200,
       y: 3,
@@ -64,7 +39,7 @@ function create(assetsScene) {
     // 時間表示用ラベル
     var timerLabel = new g.Label({
       scene: scene,
-      font: font,
+      font: cmn.data.font,
       fontSize: 16,
       text: "",
       x: 0,
@@ -118,24 +93,12 @@ function create(assetsScene) {
         scene.update.remove(updateHandler); // タイムアウトになったら毎フレーム処理自体を止める
 
         // 結果画面を表示
-        displayResult(scene, assetsScene);
+        displayResult(scene);
 
       }
       updateTimerLabel();
     }
     scene.update.add(updateHandler);
-
-
-    g.game.onPlayerInfo.add(function(ev) {
-      // 各プレイヤーが名前利用許諾のダイアログに応答した時、通知されます。
-      // ev.player.name にそのプレイヤーの名前が含まれます。
-      // (ev.player.id には (最初から) プレイヤーIDが含まれています)
-      nameTable[ev.player.id] = ev.player.name;
-
-      console.log(nameTable);
-    });
-
-    resolvePlayerInfo({ raises: true });
 
     /** 画面全体を覆う透明で touchable なエンティティ。クリックイベントを吸収する。 */
     var cover = new g.FilledRect({
@@ -336,10 +299,10 @@ function create(assetsScene) {
 
       var honorLabel = new g.Label({
         scene: scene,
-        font: font2,
+        font: cmn.data.font2,
         fontSize: 20,
         textColor: "red",
-        text: util.toZenkaku("" + nameTable[playerId]),
+        text: util.toZenkaku(util.nullToDefault(cmn.data.nameTable[playerId], "ゲスト")),
         opacity: 0.9,
         x: toX(path[path.length-1].col),
         y: toY(path[path.length-1].row)
@@ -717,7 +680,7 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
   return new_t;
 }
 
-function displayResult(scene, assetsScene) {
+function displayResult(scene) {
 
   scene.append(new g.FilledRect({
     scene: scene,
@@ -729,19 +692,9 @@ function displayResult(scene, assetsScene) {
     y: 0
   }));
 
-  // BitmapFont を生成
-  var glyph = JSON.parse(assetsScene.assets["mplus1c_regular_jis1_glyph"].data);
-  var font = new g.BitmapFont({
-    src: assetsScene.assets["mplus1c_regular_jis1"],
-    map: glyph.map,
-    defaultGlyphWidth: glyph.width,
-    defaultGlyphHeight: glyph.height,
-    missingGlyph: glyph.missingGlyph
-  });
-
   var scoreLabel = new g.Label({
     scene: scene,
-    font: font,
+    font: cmn.data.font2,
     textColor: "white",
     fontSize: 40,
     x: 10,
@@ -751,7 +704,7 @@ function displayResult(scene, assetsScene) {
 
   var yourScoreLabel = new g.Label({
     scene: scene,
-    font: font,
+    font: cmn.data.font2,
     textColor: "white",
     fontSize: 40,
     x: g.game.width / 2 - 200,
@@ -764,7 +717,7 @@ function displayResult(scene, assetsScene) {
     if (cmn.data.playerScore[playerId] > 0) {
       scores.push({
         id: playerId,
-        name: nameTable[playerId],
+        name: util.nullToDefault(cmn.data.nameTable[playerId], "ゲスト"),
         score: cmn.data.playerScore[playerId]
       });
     }
@@ -778,7 +731,7 @@ function displayResult(scene, assetsScene) {
 
     scene.append(new g.Label({
       scene: scene,
-      font: font,
+      font: cmn.data.font2,
       textColor: "white",
       fontSize: 40,
       x: 30,
@@ -787,10 +740,32 @@ function displayResult(scene, assetsScene) {
     }));
   }
 
+  var backButton = new g.FilledRect({
+    scene: scene,
+    cssColor: 'red',
+    x: 670,
+    y: 370,
+    width: 88,
+    height: 50,
+    touchable: true
+  });
+  backButton.append(new g.Label({
+    scene: scene,
+    font: cmn.data.font2,
+    textColor: "white",
+    fontSize: 40,
+    x: 15,
+    y: 4,
+    text: "戻る"
+  }));
+  backButton.onPointDown.add(function(ev) {
+    if (cmn.data.gameMasterId !== ev.player.id) return; // 生放送主だけがボタンを押せるようにする
+    g.game.popScene();
+  });
 
   scene.append(scoreLabel);
   scene.append(yourScoreLabel);
-
+  scene.append(backButton);
 }
 
 
