@@ -4,6 +4,11 @@ var cmn = require("./Common");
 var util = require("./util");
 var speaker = require("./speaker");
 
+var resolvePlayerInfo = require("@akashic-extension/resolve-player-info").resolvePlayerInfo;
+
+/** playerId から playerName への map */
+var nameTable = {};
+
 /** NOTE: このファイルで唯一の export 関数 */
 function create(assetsScene) {
   var scene = new g.Scene({ game: g.game });
@@ -119,6 +124,18 @@ function create(assetsScene) {
       updateTimerLabel();
     }
     scene.update.add(updateHandler);
+
+
+    g.game.onPlayerInfo.add(function(ev) {
+      // 各プレイヤーが名前利用許諾のダイアログに応答した時、通知されます。
+      // ev.player.name にそのプレイヤーの名前が含まれます。
+      // (ev.player.id には (最初から) プレイヤーIDが含まれています)
+      nameTable[ev.player.id] = ev.player.name;
+
+      console.log(nameTable);
+    });
+
+    resolvePlayerInfo({ raises: true });
 
     /** 画面全体を覆う透明で touchable なエンティティ。クリックイベントを吸収する。 */
     var cover = new g.FilledRect({
@@ -322,7 +339,7 @@ function create(assetsScene) {
         font: font2,
         fontSize: 20,
         textColor: "red",
-        text: util.toZenkaku("" + playerId),
+        text: util.toZenkaku("" + nameTable[playerId]),
         opacity: 0.9,
         x: toX(path[path.length-1].col),
         y: toY(path[path.length-1].row)
@@ -747,6 +764,7 @@ function displayResult(scene, assetsScene) {
     if (cmn.data.playerScore[playerId] > 0) {
       scores.push({
         id: playerId,
+        name: nameTable[playerId],
         score: cmn.data.playerScore[playerId]
       });
     }
@@ -755,7 +773,7 @@ function displayResult(scene, assetsScene) {
   for (var i = 0; i < 5; i++) {
     var text = '';
     if (i < scores.length && scores[i].score > 0) {
-      text = (i+1)+"位："+ util.paddingLeft(scores[i].score, 3, ' ') +"回　" + (scores[i].id) + "さん";
+      text = (i+1)+"位："+ util.paddingLeft(scores[i].score, 3, ' ') +"回　" + (scores[i].name);
     }
 
     scene.append(new g.Label({

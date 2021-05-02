@@ -165,11 +165,25 @@
 		}
 	},
 	"environment": {
-		"sandbox-runtime": "2",
+		"sandbox-runtime": "3",
 		"niconico": {
 			"supportedModes": [
 				"multi"
 			]
+		},
+		"external": {
+			"coeLimited": "0"
 		}
+	},
+	"globalScripts": [
+		"node_modules/@akashic-extension/akashic-hover-plugin/lib/Converter.js",
+		"node_modules/@akashic-extension/akashic-hover-plugin/lib/HoverPlugin.js",
+		"node_modules/@akashic-extension/akashic-hover-plugin/lib/index.js",
+		"node_modules/@akashic-extension/resolve-player-info/lib/FallbackDialog.js",
+		"node_modules/@akashic-extension/resolve-player-info/lib/index.js"
+	],
+	"moduleMainScripts": {
+		"@akashic-extension/akashic-hover-plugin": "node_modules/@akashic-extension/akashic-hover-plugin/lib/index.js",
+		"@akashic-extension/resolve-player-info": "node_modules/@akashic-extension/resolve-player-info/lib/index.js"
 	}
 }

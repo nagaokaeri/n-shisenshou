@@ -14,5 +14,8 @@
   "devDependencies": {
     "@akashic/akashic-sandbox": "~0.17.21",
     "eslint": "7.24.0"
+  },
+  "dependencies": {
+    "@akashic-extension/resolve-player-info": "^1.1.0"
   }
 }
