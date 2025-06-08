@@ -1,33 +1,43 @@
 window.addEventListener("load", function() {
 
-	start("exportHTML");
+	start();
 
-	function start(gamePath) {
+	function start() {
 		// TODO WebGL有効化
 		// // webgl=1でRendererを問答無用でWebGLのみにする
 		// if (getParameterByName("webgl")) {
 		// 	conf.renderers = ["webgl"];
 		// }
 
-		// 本来であればgameIdはBIGINTとして扱われるので数値だけども、export html用なのでgamePathをそのまま使う
-		var sandboxGameId = gamePath;
 		var sandboxPlayer = { id: "9999", name: "sandbox-player" };
 		var sandboxPlayId = "sandboxDummyPlayId";
-		var storage = new gameStorage.GameStorage(window.localStorage, { gameId: sandboxGameId });
 
-		var pdiBrowser = require("@akashic/pdi-browser");
-		var gdr = require("@akashic/game-driver");
+		var pdiBrowser = engineFiles.pdiBrowser;
+		var gdr = engineFiles.gameDriver;
 
 		var amflowClient = new gdr.MemoryAmflowClient({
-			playId: sandboxPlayId,
-			putStorageDataSyncFunc: storage.set.bind(storage),
-			getStorageDataSyncFunc: function (readKeys) {
-				var svs = storage.load(readKeys);
-				// StorageValue[][]からStorageData[]に変換する
-				// TODO: StorageValue[][]が返ってくる必然性はない。game-storage側の仕様を変えるべき。
-				return readKeys.map(function (k, i) { return { readKey: k, values: svs[i] }; });
-			}
+			playId: sandboxPlayId
 		});
+
+		var sandboxConfig;
+		if (window.__akashic__.autoSendEventName === true || typeof window.__akashic__.autoSendEventName === "string") {
+			sandboxConfig = window.__akashic__.sandboxConfigFunc();
+			var autoSendEventName = window.__akashic__.autoSendEventName;
+			if (autoSendEventName === true) {
+			  autoSendEventName = sandboxConfig.autoSendEventName || sandboxConfig.autoSendEvents;
+			}
+			if (!!sandboxConfig && autoSendEventName && sandboxConfig.events && sandboxConfig.events[autoSendEventName]) {
+				sandboxConfig.events[autoSendEventName].forEach(function (ev){amflowClient.sendEvent(ev)});
+			}
+		}
+
+		var gameArguments;
+		if (window.__akashic__.autoGivenArgsName) { 
+			if (!sandboxConfig) {
+				sandboxConfig = window.__akashic__.sandboxConfigFunc();
+			}
+			gameArguments = sandboxConfig.arguments[window.__akashic__.autoGivenArgsName];
+		}
 
 		var audioPlugins;
 		if (location.protocol !== "file:") {
@@ -37,10 +47,17 @@ window.addEventListener("load", function() {
 			// file:の場合ブラウザによってCORSの制約にひっかかるWebAudioは避ける
 			audioPlugins = [pdiBrowser.HTMLAudioPlugin];
 		}
+		var elem = document.getElementById("container");
 		var pf = new pdiBrowser.Platform({
 			amflow: amflowClient,
-			containerView: document.getElementById("container"),
-			audioPlugins: audioPlugins
+			containerView: elem,
+			audioPlugins: audioPlugins,
+			// iframe 下の場合 preventDefault すると iframe 領域外での mousemove が通知されなくなってしまうので無効化
+			disablePreventDefault: true
+		});
+		elem.addEventListener("touchstart", function (ev) {
+			// disablePreventDefault の場合 touchstart のデフォルト処理を止めないと mousestart が二重になる場合がある
+			ev.preventDefault();
 		});
 
 		pf.loadGameConfiguration = function(url, callback) {
@@ -104,6 +121,7 @@ window.addEventListener("load", function() {
 		driver.initialize({
 			configurationUrl: "game.json",
 			assetBase: "./",
+			gameArgs: gameArguments,
 			driverConfiguration: {
 				playId: sandboxPlayId,
 				playToken: "dummyToken",
@@ -116,7 +134,28 @@ window.addEventListener("load", function() {
 			if (e) {
 				throw e;
 			}
+			setAtsumaruHook();
 			driver.startGame();
 		});
+
+		function setAtsumaruHook() {
+			try {
+				if (typeof window !== "undefined" && window.RPGAtsumaru) {
+					var volume = window.RPGAtsumaru.volume.getCurrentValue();
+					pf.setMasterVolume(volume);
+					window.RPGAtsumaru.volume.changed.subscribe(function(newVolume) {
+						pf.setMasterVolume(newVolume);
+					});
+	
+					window.RPGAtsumaru.screenshot.setScreenshotHandler(function() {
+						var canvas = pf.getPrimarySurface().canvas;
+						var pngData = canvas.toDataURL("image/png");
+						return Promise.resolve(pngData);
+					});
+				}
+			} catch (error) {
+				console.error(error);
+			}
+		}
 	}
 });
