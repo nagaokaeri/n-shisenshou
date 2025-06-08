@@ -835,14 +835,14 @@ function displayLocalScoreboard(callback) {
   }
 
   var rankingTableHtml = '<table class="ranking-table">';
-  rankingTableHtml += '<thead><tr><th>順位</th><th>日時</th><th>スコア</th></tr></thead>';
+  rankingTableHtml += '<thead><tr><th>順位</th><th>スコア</th><th>日時</th></tr></thead>';
   rankingTableHtml += '<tbody>';
   for (var i = 0; i < current.length; i++) {
     var rankClass = "";
     if (i == 0) rankClass = ' class="rank-1"'
     if (i == 1) rankClass = ' class="rank-2"'
     if (i == 2) rankClass = ' class="rank-3"'
-    rankingTableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + current[i].time + '</td><td>' + current[i].score + '</td></tr>';
+    rankingTableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + current[i].score + '</td><td>' + current[i].time + '</td></tr>';
   }
   rankingTableHtml += '</tbody></table>';
 
