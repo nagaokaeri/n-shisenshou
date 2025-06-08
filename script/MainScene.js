@@ -159,6 +159,10 @@ function create(assetsScene) {
         if (typeof window !== "undefined" && window.RPGAtsumaru) {
           window.RPGAtsumaru.experimental.scoreboards.display(cmn.SCORE_BOARD_ID);
         }
+        if (true) {
+          setOperable(false);
+          displayLocalScoreboard(function(){setOperable(true);});
+        }
       });
       scene.append(rankingButton);
       setOperable(true);
@@ -213,7 +217,11 @@ function create(assetsScene) {
             goOvertime();
           });
         } else {
-          scene.pointUpCapture.add(goOvertime);
+          setRecordToLocalScoreboard(
+            startTimeMillis,
+            g.game.vars.gameState.score // スコアをローカルストレージに記録
+          );
+          displayLocalScoreboard(function(){goOvertime();}); // スコアボードを表示
         }
 
       }
@@ -799,6 +807,100 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
   }, 100);
 
   return new_t;
+}
+
+function displayLocalScoreboard(callback) {
+
+  // スタイルシートを追加
+  if (!document.getElementById('my-dynamic-style')) {
+    var style = document.createElement('style');
+    style.id = 'my-dynamic-style';
+    style.textContent = '#customAlert{font-family:"Segoe UI",sans-serif;background:linear-gradient(120deg,#f0f8ff,#e6e6fa);margin:0;padding:2em;display:flex;flex-direction:column;align-items:center}h2{color:#336;margin-bottom:0.1em}.ranking-table{width:90%;max-width:600px;border-collapse:collapse;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);overflow:hidden}.ranking-table th,.ranking-table td{padding:0.2em 1em;text-align:center}.ranking-table thead{background-color:#6c90f0;color:#fff}.ranking-table tbody tr:nth-child(even){background-color:#f9f9ff}.ranking-table tbody tr:hover{background-color:#e0e8ff}.rank-1{font-weight:700;color:gold}.rank-2{font-weight:700;color:silver}.rank-3{font-weight:700;color:#cd7f32}';
+    document.head.appendChild(style);
+  }
+
+  var current = localStorage.getItem("scores");
+  if (!current) current = [];
+  else current = JSON.parse(current);
+  current.sort(function(a, b) {
+    if (a.score != b.score) return b.score - a.score; // score が大きい順
+    return a.time - b.time; // time が小さい順
+  });
+
+  // 長くなりすぎたデータはこのタイミングでストレージから消す
+  if (current.length > 20) {
+    current = current.slice(0, 20);
+    localStorage.setItem("scores", JSON.stringify(current));
+  }
+
+  var rankingTableHtml = '<table class="ranking-table">';
+  rankingTableHtml += '<thead><tr><th>順位</th><th>日時</th><th>スコア</th></tr></thead>';
+  rankingTableHtml += '<tbody>';
+  for (var i = 0; i < current.length; i++) {
+    var rankClass = "";
+    if (i == 0) rankClass = ' class="rank-1"'
+    if (i == 1) rankClass = ' class="rank-2"'
+    if (i == 2) rankClass = ' class="rank-3"'
+    rankingTableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + current[i].time + '</td><td>' + current[i].score + '</td></tr>';
+  }
+  rankingTableHtml += '</tbody></table>';
+
+  // アラート用のdiv作成
+  var alertDiv = document.createElement('div');
+  alertDiv.id = 'customAlert';
+  alertDiv.style.position = 'fixed';
+  alertDiv.style.top = '30px';
+  alertDiv.style.left = '100px';
+  alertDiv.style.width = '500px';
+  alertDiv.style.height = '370px';
+  alertDiv.style.overflow = "auto";
+  alertDiv.style.border = '1px solid #ccc';
+  alertDiv.style.padding = '10px';
+  alertDiv.style.boxShadow = '0 0 10px #999';
+  alertDiv.style.zIndex = '9999';
+
+  // 中身のHTMLを挿入（閉じるボタンも含む）
+  var innerHtml = '<h2>🏆 ランキング <button id="closeCustomAlert1">閉じる</button></h2>';
+  innerHtml += rankingTableHtml;
+  innerHtml += '<button id="closeCustomAlert2">閉じる</button>';
+
+  alertDiv.innerHTML = innerHtml;
+  
+    // ドキュメントに追加
+  document.body.appendChild(alertDiv);
+
+  // 閉じるボタンにイベント追加
+  document.getElementById('closeCustomAlert1').onclick = function(){ alertDiv.remove(); callback && callback(); };
+  document.getElementById('closeCustomAlert2').onclick = function(){ alertDiv.remove(); callback && callback(); };
+
+}
+
+/**
+ * @param {Number} millis 
+ * @param {Number} score 
+ */
+function setRecordToLocalScoreboard(millis, score) {
+  var current = localStorage.getItem("scores");
+  if (!current) current = [];
+  else current = JSON.parse(current);
+  current.push({time: formatDate(new Date(millis)), score: score});
+  localStorage.setItem("scores", JSON.stringify(current));
+  return;
+}
+
+/**
+ * @param {Date} date
+ */
+function formatDate(date) {
+  function pad(n) { return n.toString().padStart(2, '0'); }
+
+  var year = date.getFullYear();
+  var month = pad(date.getMonth() + 1); // 0〜11 → 1〜12
+  var day = pad(date.getDate());
+  var hour = pad(date.getHours());
+  var minute = pad(date.getMinutes());
+  var second = pad(date.getSeconds());
+  return "" + year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second
 }
 
 module.exports.create = create;
