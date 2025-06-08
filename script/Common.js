@@ -15,7 +15,7 @@ var BOARD_WIDTH = 19; // 牌は17x8に配置 + 周囲1マス
 var BOARD_HEIGHT = 10; // 牌は17x8に配置 + 周囲1マス
 
 var SCORE_BOARD_ID = 1; // ボードIDとして固定で1を指定
-var MASTER_VOLUME = 0.9;
+var MASTER_VOLUME = 0.2;
 
 module.exports.HAI_SRC_WIDTH = HAI_SRC_WIDTH;
 module.exports.HAI_SRC_HEIGHT = HAI_SRC_HEIGHT;
