@@ -436,7 +436,6 @@ function create(assetsScene) {
       }
     }
     scene.append(haiContainer);
-    scene.append(cover);
 
     var resetButton = new g.Sprite({
       scene: scene,
@@ -473,6 +472,8 @@ function create(assetsScene) {
       forceEndGame();
     });
     scene.append(giveupButton);
+
+    scene.append(cover); // 一番上になるように最後に追加する
 
     setOperable(false); // 最初は操作不可
     scene.setTimeout(function() {
