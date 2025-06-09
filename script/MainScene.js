@@ -815,7 +815,8 @@ function displayLocalScoreboard(callback) {
   if (!document.getElementById('my-dynamic-style')) {
     var style = document.createElement('style');
     style.id = 'my-dynamic-style';
-    style.textContent = '#customAlert{font-family:"Segoe UI",sans-serif;background:linear-gradient(120deg,#f0f8ff,#e6e6fa);margin:0;padding:2em;display:flex;flex-direction:column;align-items:center}h2{color:#336;margin-bottom:0.1em}.ranking-table{width:90%;max-width:600px;border-collapse:collapse;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);overflow:hidden}.ranking-table th,.ranking-table td{padding:0.2em 1em;text-align:center}.ranking-table thead{background-color:#6c90f0;color:#fff}.ranking-table tbody tr:nth-child(even){background-color:#f9f9ff}.ranking-table tbody tr:hover{background-color:#e0e8ff}.rank-1{font-weight:700;color:gold}.rank-2{font-weight:700;color:silver}.rank-3{font-weight:700;color:#cd7f32}';
+    style.textContent = '.rank-1,.rank-2,.rank-3{font-weight:700}#customAlert{font-family:"Segoe UI",sans-serif;background:linear-gradient(120deg,#f0f8ff,#e6e6fa);margin:0;padding:2em;display:flex;flex-direction:column;align-items:center}.ranking-table{width:90%;max-width:600px;border-collapse:collapse;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-top:.1em;margin-bottom:.1em;overflow:hidden}.ranking-table td,.ranking-table th{padding:.2em 1em;text-align:center}.ranking-table thead{background-color:#6c90f0;color:#fff}.ranking-table tbody tr:nth-child(2n){background-color:#f9f9ff}.ranking-table tbody tr:hover{background-color:#e0e8ff}.rank-1{color:gold}.rank-2{color:silver}.rank-3{color:#cd7f32}' 
+    + '.tabs{display:flex;margin-bottom:1px}.tab{padding:10px 20px;cursor:pointer;background:#eee;border:1px solid #ccc;border-bottom:none;margin-right:4px;border-radius:6px 6px 0 0}.tab.active{background:#fff;font-weight:700;border-bottom:1px solid #fff}';
     document.head.appendChild(style);
   }
 
@@ -827,23 +828,67 @@ function displayLocalScoreboard(callback) {
     return a.time - b.time; // time が小さい順
   });
 
+  var now = new Date();
+  var ago24h = formatDate(new Date(now.getTime() - 86400 * 1000));
+  var ago30d = formatDate(new Date(now.getTime() - 30 * 86400 * 1000));
+
+  var ranking24h = current.filter(function(item){ return item.time >= ago24h; });
+  if (ranking24h.length > 20) { ranking24h = current.slice(0, 20); }
+
+  var ranking30d = current.filter(function(item){ return item.time >= ago30d; });
+  if (ranking30d.length > 20) { ranking30d = current.slice(0, 20); }
+
   // 長くなりすぎたデータはこのタイミングでストレージから消す
   if (current.length > 20) {
-    current = current.slice(0, 20);
-    localStorage.setItem("scores", JSON.stringify(current));
+    var alive = [];
+    for (var i = 0; i < current.length; i++) {
+      if (i < 20 || 
+          !!ranking24h.find(function(item) { return item.time === current[i].time } ) ||
+          !!ranking30d.find(function(item) { return item.time === current[i].time } ))
+      {
+        alive.push(current[i]);
+      }
+    }
+    localStorage.setItem("scores", JSON.stringify(alive));
   }
 
-  var rankingTableHtml = '<table class="ranking-table">';
-  rankingTableHtml += '<thead><tr><th>順位</th><th>スコア</th><th>日時</th></tr></thead>';
-  rankingTableHtml += '<tbody>';
-  for (var i = 0; i < current.length; i++) {
+  var labelHtml = '<div class="tabs"><div class="tab active" data-target="content1">24時間</div><div class="tab" data-target="content2">30日</div><div class="tab" data-target="content3">総合</div></div>';
+  var rankingTableHtmlDaily = '<table class="ranking-table" id="content1">';
+  rankingTableHtmlDaily += '<thead><tr><th>順位(24h)</th><th>スコア</th><th>日時</th></tr></thead>';
+  rankingTableHtmlDaily += '<tbody>';
+  for (var i = 0; i < ranking24h.length; i++) {
     var rankClass = "";
     if (i == 0) rankClass = ' class="rank-1"'
     if (i == 1) rankClass = ' class="rank-2"'
     if (i == 2) rankClass = ' class="rank-3"'
-    rankingTableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + current[i].score + '</td><td>' + current[i].time + '</td></tr>';
+    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + ranking24h[i].score + '</td><td>' + ranking24h[i].time + '</td></tr>';
   }
-  rankingTableHtml += '</tbody></table>';
+  rankingTableHtmlDaily += '</tbody></table>';
+
+
+  var rankingTableHtmlMonthly = '<table class="ranking-table" id="content2" style="display:none;">';
+  rankingTableHtmlMonthly += '<thead><tr><th>順位(30d)</th><th>スコア</th><th>日時</th></tr></thead>';
+  rankingTableHtmlMonthly += '<tbody>';
+  for (var i = 0; i < ranking30d.length; i++) {
+    var rankClass = "";
+    if (i == 0) rankClass = ' class="rank-1"'
+    if (i == 1) rankClass = ' class="rank-2"'
+    if (i == 2) rankClass = ' class="rank-3"'
+    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + ranking30d[i].score + '</td><td>' + ranking30d[i].time + '</td></tr>';
+  }
+  rankingTableHtmlMonthly += '</tbody></table>';
+
+  var rankingTableHtmlAllTime = '<table class="ranking-table" id="content3" style="display:none;">';
+  rankingTableHtmlAllTime += '<thead><tr><th>順位(all)</th><th>スコア</th><th>日時</th></tr></thead>';
+  rankingTableHtmlAllTime += '<tbody>';
+  for (var i = 0; i < Math.min(20, current.length); i++) {
+    var rankClass = "";
+    if (i == 0) rankClass = ' class="rank-1"'
+    if (i == 1) rankClass = ' class="rank-2"'
+    if (i == 2) rankClass = ' class="rank-3"'
+    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + current[i].score + '</td><td>' + current[i].time + '</td></tr>';
+  }
+  rankingTableHtmlAllTime += '</tbody></table>';
 
   // アラート用のdiv作成
   var alertDiv = document.createElement('div');
@@ -860,19 +905,39 @@ function displayLocalScoreboard(callback) {
   alertDiv.style.zIndex = '9999';
 
   // 中身のHTMLを挿入（閉じるボタンも含む）
-  var innerHtml = '<h2>🏆 ランキング <button id="closeCustomAlert1">閉じる</button></h2>';
-  innerHtml += rankingTableHtml;
+  var innerHtml = '<button id="closeCustomAlert1" style="align-self:flex-end;">閉じる</button>';
+  innerHtml += labelHtml;
+  innerHtml += rankingTableHtmlDaily;
+  innerHtml += rankingTableHtmlMonthly;
+  innerHtml += rankingTableHtmlAllTime;
   innerHtml += '<button id="closeCustomAlert2">閉じる</button>';
 
   alertDiv.innerHTML = innerHtml;
   
-    // ドキュメントに追加
+  // ドキュメントに追加
   document.body.appendChild(alertDiv);
+
+  // タブ切り替えイベント追加
+  var tabs = document.querySelectorAll('.tab');
+  var contents = document.querySelectorAll('.ranking-table');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){t.classList.remove('active')});
+      tab.classList.add('active');
+      var targetId = tab.dataset.target;
+      contents.forEach(function(content){
+        if (content.id === targetId) {
+          content.style.display = null;
+        } else {
+          content.style.display = 'none';
+        }
+      });
+    });
+  });
 
   // 閉じるボタンにイベント追加
   document.getElementById('closeCustomAlert1').onclick = function(){ alertDiv.remove(); callback && callback(); };
   document.getElementById('closeCustomAlert2').onclick = function(){ alertDiv.remove(); callback && callback(); };
-
 }
 
 /**
