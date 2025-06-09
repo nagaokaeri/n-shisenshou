@@ -436,7 +436,6 @@ function create(assetsScene) {
       }
     }
     scene.append(haiContainer);
-    scene.append(cover);
 
     var resetButton = new g.Sprite({
       scene: scene,
@@ -473,6 +472,8 @@ function create(assetsScene) {
       forceEndGame();
     });
     scene.append(giveupButton);
+
+    scene.append(cover); // 一番上になるように最後に追加する
 
     setOperable(false); // 最初は操作不可
     scene.setTimeout(function() {
@@ -842,10 +843,15 @@ function displayLocalScoreboard(callback) {
   if (current.length > 20) {
     var alive = [];
     for (var i = 0; i < current.length; i++) {
-      if (i < 20 || 
-          !!ranking24h.find(function(item) { return item.time === current[i].time } ) ||
-          !!ranking30d.find(function(item) { return item.time === current[i].time } ))
-      {
+      // 自分を上回るスコアかつ新しいデータが20件以上あるとき
+      // そのデータはもうランキングに表示されることは無い
+      var my = current[i];
+      var c = 0;
+      for (var j = 0; j < current.length; j++) {
+        if (my.score < current[j].score && my.time < current[j].time)
+          c++;
+      }
+      if (c < 20) {
         alive.push(current[i]);
       }
     }
