@@ -141,7 +141,7 @@ function create(assetsScene) {
       hintButton.pointUp.add(function(ev) {
         countErasable(scene, t, true);
       });
-      scene.append(hintButton);
+      scene.insertBefore(hintButton, cover);
 
       // ランキングボード表示ボタン
       var rankingButton = new g.Sprite({
@@ -164,7 +164,7 @@ function create(assetsScene) {
           displayLocalScoreboard(function(){setOperable(true);});
         }
       });
-      scene.append(rankingButton);
+      scene.insertBefore(rankingButton, cover);
       setOperable(true);
 
     }
