@@ -835,10 +835,10 @@ function displayLocalScoreboard(callback) {
   var ago30d = formatDate(new Date(now.getTime() - 30 * 86400 * 1000));
 
   var ranking24h = current.filter(function(item){ return item.time >= ago24h; });
-  if (ranking24h.length > 20) { ranking24h = current.slice(0, 20); }
+  if (ranking24h.length > 20) { ranking24h = ranking24h.slice(0, 20); }
 
   var ranking30d = current.filter(function(item){ return item.time >= ago30d; });
-  if (ranking30d.length > 20) { ranking30d = current.slice(0, 20); }
+  if (ranking30d.length > 20) { ranking30d = ranking30d.slice(0, 20); }
 
   // 長くなりすぎたデータはこのタイミングでストレージから消す
   if (current.length > 20) {
