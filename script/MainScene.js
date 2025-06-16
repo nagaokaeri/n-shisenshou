@@ -821,17 +821,20 @@ function displayLocalScoreboard(callback) {
     document.head.appendChild(style);
   }
 
-  var current = localStorage.getItem("scores");
-  if (!current) current = [];
-  else current = JSON.parse(current);
+  migrateScoreStorage();
+
+  var currentStr = localStorage.getItem("scores2");
+  var current = [];
+  if (currentStr) current = JSON.parse(currentStr);
+
   current.sort(function(a, b) {
     if (a.score != b.score) return b.score - a.score; // score が大きい順
     return a.time - b.time; // time が小さい順
   });
 
   var now = new Date();
-  var ago24h = formatDate(new Date(now.getTime() - 86400 * 1000));
-  var ago30d = formatDate(new Date(now.getTime() - 30 * 86400 * 1000));
+  var ago24h = ((now.getTime() - 86400 * 1000) / 1000) | 0;
+  var ago30d = ((now.getTime() - 30 * 86400 * 1000) / 1000) | 0;
 
   var ranking24h = current.filter(function(item){ return item.time >= ago24h; });
   var ranking30d = current.filter(function(item){ return item.time >= ago30d; });
@@ -852,7 +855,7 @@ function displayLocalScoreboard(callback) {
         alive.push(current[i]);
       }
     }
-    localStorage.setItem("scores", JSON.stringify(alive));
+    localStorage.setItem("scores2", JSON.stringify(alive));
   }
 
   var labelHtml = '<div class="tabs"><div class="tab active" data-target="content1">24時間</div><div class="tab" data-target="content2">30日</div><div class="tab" data-target="content3">総合</div></div>';
@@ -863,7 +866,7 @@ function displayLocalScoreboard(callback) {
   ranking24h.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + item.time + '</td></tr>';
+    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlDaily += '</tbody></table>';
 
@@ -873,7 +876,7 @@ function displayLocalScoreboard(callback) {
   ranking30d.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + item.time + '</td></tr>';
+    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlMonthly += '</tbody></table>';
 
@@ -883,7 +886,7 @@ function displayLocalScoreboard(callback) {
   current.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + item.time + '</td></tr>';
+    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlAllTime += '</tbody></table>';
 
@@ -942,12 +945,36 @@ function displayLocalScoreboard(callback) {
  * @param {Number} score 
  */
 function setRecordToLocalScoreboard(millis, score) {
-  var current = localStorage.getItem("scores");
-  if (!current) current = [];
-  else current = JSON.parse(current);
-  current.push({time: formatDate(new Date(millis)), score: score});
-  localStorage.setItem("scores", JSON.stringify(current));
+  migrateScoreStorage();
+  var v2str = localStorage.getItem("scores2");
+  var v2 = [];
+  if (v2str) v2 = JSON.parse(v2str);
+  v2.push({
+    "id": crypto.randomUUID(),
+    "time": (millis / 1000)|0,
+    "score": score
+  });
+  localStorage.setItem("scores2", JSON.stringify(v2));
   return;
+}
+
+function migrateScoreStorage(){
+  var v1str = localStorage.getItem("scores");
+  if (!v1str) return;
+  localStorage.removeItem("scores");
+  var v1 = JSON.parse(v1str);
+
+  var v2str = localStorage.getItem("scores2");
+  var v2 = [];
+  if (v2str) v2 = JSON.parse(v2str);
+  v1.forEach(function(v1item){
+    v2.push({
+      "id": crypto.randomUUID(),
+      "time": (parseDateString(v1item.time).getTime() / 1000)|0,
+      "score": v1item.score,
+    });
+  });
+  localStorage.setItem("scores2", JSON.stringify(v2));
 }
 
 /**
@@ -963,6 +990,17 @@ function formatDate(date) {
   var minute = pad(date.getMinutes());
   var second = pad(date.getSeconds());
   return "" + year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second
+}
+
+/**
+ * @param {string} str 例: 2025/06/10 08:33:20 
+ */
+function parseDateString(str) {
+  var datePart = str.split(' ')[0];
+  var timePart = str.split(' ')[1];
+  var ymd = datePart.split('/').map(Number);
+  var hms = timePart.split(':').map(Number);
+  return new Date(ymd[0], ymd[1] - 1, ymd[2], hms[0], hms[1], hms[2]);
 }
 
 module.exports.create = create;
