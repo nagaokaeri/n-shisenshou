@@ -823,7 +823,7 @@ function displayLocalScoreboard(callback) {
 
   migrateScoreStorage();
 
-  var currentStr = localStorage.getItem("scores2");
+  var currentStr = localStorage.getItem("scores3");
   var current = [];
   if (currentStr) current = JSON.parse(currentStr);
 
@@ -855,7 +855,7 @@ function displayLocalScoreboard(callback) {
         alive.push(current[i]);
       }
     }
-    localStorage.setItem("scores2", JSON.stringify(alive));
+    localStorage.setItem("scores3", JSON.stringify(alive));
   }
 
   var labelHtml = '<div class="tabs"><div class="tab active" data-target="content1">24時間</div><div class="tab" data-target="content2">30日</div><div class="tab" data-target="content3">総合</div></div>';
@@ -866,7 +866,7 @@ function displayLocalScoreboard(callback) {
   ranking24h.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
+    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlDaily += '</tbody></table>';
 
@@ -876,7 +876,7 @@ function displayLocalScoreboard(callback) {
   ranking30d.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
+    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlMonthly += '</tbody></table>';
 
@@ -886,7 +886,7 @@ function displayLocalScoreboard(callback) {
   current.slice(0, 20).forEach(function(item, i){
     var rankClass = "";
     if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + formatDate(new Date(1000*item.time)) + '</td></tr>';
+    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
   });
   rankingTableHtmlAllTime += '</tbody></table>';
 
@@ -946,19 +946,24 @@ function displayLocalScoreboard(callback) {
  */
 function setRecordToLocalScoreboard(millis, score) {
   migrateScoreStorage();
-  var v2str = localStorage.getItem("scores2");
-  var v2 = [];
-  if (v2str) v2 = JSON.parse(v2str);
-  v2.push({
-    "id": crypto.randomUUID(),
+  var currentStr = localStorage.getItem("scores3");
+  var current = [];
+  if (currentStr) current = JSON.parse(currentStr);
+  current.push({
+    "id": util.generateUUIDWithWeightedChecksum(),
     "time": (millis / 1000)|0,
     "score": score
   });
-  localStorage.setItem("scores2", JSON.stringify(v2));
+  localStorage.setItem("scores3", JSON.stringify(current));
   return;
 }
 
 function migrateScoreStorage(){
+  migrateScoreStorage1to2();
+  migrateScoreStorage2to3();
+}
+
+function migrateScoreStorage1to2(){
   var v1str = localStorage.getItem("scores");
   if (!v1str) return;
   localStorage.removeItem("scores");
@@ -970,37 +975,30 @@ function migrateScoreStorage(){
   v1.forEach(function(v1item){
     v2.push({
       "id": crypto.randomUUID(),
-      "time": (parseDateString(v1item.time).getTime() / 1000)|0,
+      "time": (util.parseDateString(v1item.time).getTime() / 1000)|0,
       "score": v1item.score,
     });
   });
   localStorage.setItem("scores2", JSON.stringify(v2));
 }
 
-/**
- * @param {Date} date
- */
-function formatDate(date) {
-  function pad(n) { return n.toString().padStart(2, '0'); }
+function migrateScoreStorage2to3(){
+  var v2str = localStorage.getItem("scores2");
+  if (!v2str) return;
+  localStorage.removeItem("scores2");
+  var v2 = JSON.parse(v2str);
 
-  var year = date.getFullYear();
-  var month = pad(date.getMonth() + 1); // 0〜11 → 1〜12
-  var day = pad(date.getDate());
-  var hour = pad(date.getHours());
-  var minute = pad(date.getMinutes());
-  var second = pad(date.getSeconds());
-  return "" + year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second
-}
-
-/**
- * @param {string} str 例: 2025/06/10 08:33:20 
- */
-function parseDateString(str) {
-  var datePart = str.split(' ')[0];
-  var timePart = str.split(' ')[1];
-  var ymd = datePart.split('/').map(Number);
-  var hms = timePart.split(':').map(Number);
-  return new Date(ymd[0], ymd[1] - 1, ymd[2], hms[0], hms[1], hms[2]);
+  var v3str = localStorage.getItem("scores3");
+  var v3 = [];
+  if (v3str) v3 = JSON.parse(v3str);
+  v2.forEach(function(v2item){
+    v3.push({
+      "id": util.generateUUIDWithWeightedChecksum(),
+      "time": v2item.time,
+      "score": v2item.score,
+    });
+  });
+  localStorage.setItem("scores3", JSON.stringify(v3));
 }
 
 module.exports.create = create;
