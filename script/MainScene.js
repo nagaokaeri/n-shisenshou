@@ -26,6 +26,21 @@ function create(assetsScene) {
     }
   });
 
+  // サーバから取得するオンラインランキングのデータなど。
+  var rankingBoardMutex = {
+    isLoading: false,
+    ranking24h: [],
+    ranking30d: [],
+    rankingAll: [],
+    callbacks: [],
+    resolveCallbacks: function() {
+      while (this.callbacks[0]) {
+        var f = this.callbacks.shift();
+        f();
+      }
+    }
+  };
+
   scene.loaded.add(function () {
 
     // ここからゲーム内容を記述します
@@ -161,7 +176,7 @@ function create(assetsScene) {
         }
         if (true) {
           setOperable(false);
-          displayLocalScoreboard(function(){setOperable(true);});
+          displayLocalScoreboard(rankingBoardMutex, function(){setOperable(true);});
         }
       });
       scene.insertBefore(rankingButton, cover);
@@ -219,9 +234,10 @@ function create(assetsScene) {
         } else {
           setRecordToLocalScoreboard(
             startTimeMillis,
-            g.game.vars.gameState.score // スコアをローカルストレージに記録
+            g.game.vars.gameState.score, // スコアをローカルストレージに記録
+            rankingBoardMutex // サーバからオンラインランキングのスコアを取得するときの排他制御など
           );
-          displayLocalScoreboard(function(){goOvertime();}); // スコアボードを表示
+          displayLocalScoreboard(rankingBoardMutex, function(){goOvertime();}); // スコアボードを表示
         }
 
       }
@@ -810,16 +826,7 @@ function shuffleBoard(scene, t, haiContainer, setOperable) {
   return new_t;
 }
 
-function displayLocalScoreboard(callback) {
-
-  // スタイルシートを追加
-  if (!document.getElementById('my-dynamic-style')) {
-    var style = document.createElement('style');
-    style.id = 'my-dynamic-style';
-    style.textContent = '.rank-1,.rank-2,.rank-3{font-weight:700}#customAlert{font-family:"Segoe UI",sans-serif;background:linear-gradient(120deg,#f0f8ff,#e6e6fa);margin:0;padding:2em;display:flex;flex-direction:column;align-items:center}.ranking-table{width:90%;max-width:600px;border-collapse:collapse;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-top:.1em;margin-bottom:.1em;overflow:hidden}.ranking-table td,.ranking-table th{padding:.2em 1em;text-align:center}.ranking-table thead{background-color:#6c90f0;color:#fff}.ranking-table tbody tr:nth-child(2n){background-color:#f9f9ff}.ranking-table tbody tr:hover{background-color:#e0e8ff}.rank-1{color:gold}.rank-2{color:silver}.rank-3{color:#cd7f32}' 
-    + '.tabs{display:flex;margin-bottom:1px}.tab{padding:10px 20px;cursor:pointer;background:#eee;border:1px solid #ccc;border-bottom:none;margin-right:4px;border-radius:6px 6px 0 0}.tab.active{background:#fff;font-weight:700;border-bottom:1px solid #fff}';
-    document.head.appendChild(style);
-  }
+function displayLocalScoreboard(rankingBoardMutex, callback) {
 
   migrateScoreStorage();
 
@@ -857,104 +864,282 @@ function displayLocalScoreboard(callback) {
     }
     localStorage.setItem("scores3", JSON.stringify(alive));
   }
-
-  var labelHtml = '<div class="tabs"><div class="tab active" data-target="content1">24時間</div><div class="tab" data-target="content2">30日</div><div class="tab" data-target="content3">総合</div></div>';
-
-  var rankingTableHtmlDaily = '<table class="ranking-table" id="content1">';
-  rankingTableHtmlDaily += '<thead><tr><th>順位(24h)</th><th>スコア</th><th>日時</th></tr></thead>';
-  rankingTableHtmlDaily += '<tbody>';
-  ranking24h.slice(0, 20).forEach(function(item, i){
-    var rankClass = "";
-    if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlDaily += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
+  
+  var ranking24h = ranking24h.slice(0, 20).map(function(item){ return {
+      "score": item.score,
+      "time": util.formatDate(new Date(1000*item.time)),
+    };
   });
-  rankingTableHtmlDaily += '</tbody></table>';
-
-  var rankingTableHtmlMonthly = '<table class="ranking-table" id="content2" style="display:none;">';
-  rankingTableHtmlMonthly += '<thead><tr><th>順位(30d)</th><th>スコア</th><th>日時</th></tr></thead>';
-  rankingTableHtmlMonthly += '<tbody>';
-  ranking30d.slice(0, 20).forEach(function(item, i){
-    var rankClass = "";
-    if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlMonthly += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
+  var ranking30d = ranking30d.slice(0, 20).map(function(item){ return {
+      "score": item.score,
+      "time": util.formatDate(new Date(1000*item.time)),
+    };
   });
-  rankingTableHtmlMonthly += '</tbody></table>';
-
-  var rankingTableHtmlAllTime = '<table class="ranking-table" id="content3" style="display:none;">';
-  rankingTableHtmlAllTime += '<thead><tr><th>順位(all)</th><th>スコア</th><th>日時</th></tr></thead>';
-  rankingTableHtmlAllTime += '<tbody>';
-  current.slice(0, 20).forEach(function(item, i){
-    var rankClass = "";
-    if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
-    rankingTableHtmlAllTime += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + util.formatDate(new Date(1000*item.time)) + '</td></tr>';
+  var rankingAll = current.slice(0, 20).map(function(item){ return {
+      "score": item.score,
+      "time": util.formatDate(new Date(1000*item.time)),
+    };
   });
-  rankingTableHtmlAllTime += '</tbody></table>';
+  renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMutex);
+}
+
+function renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMutex) {
+
+  // スタイルシートを追加
+  if (!document.getElementById('my-dynamic-style')) {
+    var style = document.createElement('style');
+    style.id = 'my-dynamic-style';
+    style.textContent = '#customAlert{font-family:"Segoe UI",sans-serif;background:linear-gradient(120deg,#f0f8ff,#e6e6fa);margin:0;padding:2em;display:flex;flex-direction:column;align-items:center;position:fixed;top:30px;left:100px;width:500px;height:370px;overflow:auto;border:1px solid #ccc;padding:10px;boxShadow:0 0 10px #999;zIndex:9999}.ranking-table{width:90%;max-width:600px;border-collapse:collapse;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-top:0;margin-bottom:.1em;overflow:hidden}.ranking-table td,.ranking-table th{padding:.2em .5em;text-align:center;max-width:160px}.ranking-table thead{background-color:#6c90f0;color:#fff}.ranking-table tbody tr:nth-child(2n){background-color:#f9f9ff}.ranking-table tbody tr:hover{background-color:#e0e8ff}.rank-1{color:gold}.rank-2{color:silver}.rank-3{color:#cd7f32}.tabs{display:flex;margin-bottom:1px; margin-left:40px;}.tab{padding:10px 20px;cursor:pointer;background:#eee;border:1px solid #ccc;border-bottom:none;margin-right:4px;border-radius:6px 6px 0 0}.tab.active{background:#fff;font-weight:700;border-bottom:2px solid #fff}';
+    style.textContent += `
+  .toggle-container {
+    display: inline-flex;
+    border: 1px solid #888;
+    border-radius: 5px;
+    overflow: hidden;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+
+  .toggle-container input[type="radio"] {
+    display: none;
+  }
+
+  .toggle-container label {
+    width: 20px;
+    padding: 8px 8px;
+    cursor: pointer;
+    background: #eee;
+    border-right: 1px solid #ccc;
+  }
+
+  .toggle-container label:last-child {
+    border-right: none;
+  }
+
+  .toggle-container input[type="radio"]:checked + label {
+    background: #fff;
+    font-weight: bold;
+    border-bottom: 2px solid #6c90f0;
+  }
+
+  #configButton {
+    border: 1px solid #888;
+    border-radius: 5px;
+    background-color: #fff;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    position: absolute;
+    top: 25px;
+    left: 105px;
+    padding: 4px 4px;
+  }
+
+  #modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #modal {
+    background: white;
+    padding: 1em;
+    border-radius: 8px;
+    width: 300px;
+    box-shadow: 0 0 10px #0006;
+  }
+
+  #modal input {
+    width: 100%;
+    padding: 0.5em;
+    margin-top: 0.5em;
+    box-sizing: border-box;
+    border: 1px solid black;
+  }
+
+  #modal-buttons {
+    margin-top: 1em;
+    text-align: right;
+  }
+  #modal button {
+    width: 6em;
+    height: 2em;
+  }
+`;
+    document.head.appendChild(style);
+  }
+
+  /**
+   * @param param {Object}
+   * @param param.type {String} // local|online
+   * @param param.id {Srring} content1
+   * @param param.header1 {String} // 順位(24h)
+   * @param param.items {Array} // 
+   */
+  function renderRankingTable(param) {
+    if (param.type === 'loading') {
+      return '<table class="ranking-table" id="'+ param.id + '" style="display:none;"><tr><td><img src="image/loading.gif"></img></td></tr></table>';
+    } else {
+      var tableHtml = '<table class="ranking-table" id="'+ param.id + '" style="display:none;">';
+        if (param.type === 'local') { tableHtml += '<thead><tr><th>'+ param.header1 +'</th><th>スコア</th><th>日時</th></tr></thead>'; }
+        if (param.type === 'online') { tableHtml += '<thead><tr><th>'+ param.header1 +'</th><th>名前</th><th>スコア</th><th>日時</th></tr></thead>'; }
+        tableHtml += '<tbody>';
+        param.items.forEach(function(item, i){
+          var rankClass = "";
+          if (i < 3) rankClass = ' class="rank-' + (i+1) + '"';
+          if (param.type === 'local') { tableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>' + item.score + '</td><td>' + item.time + '</td></tr>'; }
+          if (param.type === 'online') { tableHtml += '<tr><td' + rankClass + '>' + (i+1) + '位</td><td>'+ item.name +'</td><td>' + item.score + '</td><td>' + item.time + '</td></tr>'; }
+        });
+        tableHtml += '</tbody></table>';
+      return tableHtml;
+    }
+  };
+
+  var labelHtml = '<div class="tabs"><div class="tab active" data-target="tab1">24時間</div><div class="tab" data-target="tab2">30日</div><div class="tab" data-target="tab3">総合</div></div>';
+
+  var rankingToggleHtml = `
+<div class="toggle-container">
+  <input type="radio" id="toggle-local" name="rankingToggle" checked><label for="toggle-local">&#x1f408;</label>
+  <input type="radio" id="toggle-online" name="rankingToggle"><label for="toggle-online">&#x1f310;</label>
+</div>
+<div>
+  <button id="configButton"><img src="image/gear.png" height="20" width="20"></img></button>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <div>お名前</div>
+    <input type="text" id="nameInput" maxlength="16" />
+    <div id="modal-buttons">
+      <button id="modal-button1">OK</button>
+    </div>
+  </div>
+</div>
+`;
+
+  // 古いデータが見えないように初期レンダリングされる前に取得を試みる。かなり汚い。メンテ不可能。
+  fetchOnlineRanking(rankingBoardMutex);
+  // データ取得できたタイミングで再描画。
+  rankingBoardMutex.callbacks.push(function(){
+    if (document.getElementById("customAlert")) {
+      document.getElementById("content4").outerHTML = renderRankingTable({ "id": "content4", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(24h)", "items": rankingBoardMutex.ranking24h });
+      document.getElementById("content5").outerHTML = renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(30d)", "items": rankingBoardMutex.ranking30d });
+      document.getElementById("content6").outerHTML = renderRankingTable({ "id": "content6", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(all)", "items": rankingBoardMutex.rankingAll });
+      switchTableDisplay();
+    }
+  });
 
   // アラート用のdiv作成
   var alertDiv = document.createElement('div');
   alertDiv.id = 'customAlert';
-  alertDiv.style.position = 'fixed';
-  alertDiv.style.top = '30px';
-  alertDiv.style.left = '100px';
-  alertDiv.style.width = '500px';
-  alertDiv.style.height = '370px';
-  alertDiv.style.overflow = "auto";
-  alertDiv.style.border = '1px solid #ccc';
-  alertDiv.style.padding = '10px';
-  alertDiv.style.boxShadow = '0 0 10px #999';
-  alertDiv.style.zIndex = '9999';
 
   // 中身のHTMLを挿入（閉じるボタンも含む）
   var innerHtml = '<button id="closeCustomAlert1" style="align-self:flex-end;">閉じる</button>';
+  innerHtml += rankingToggleHtml;
   innerHtml += labelHtml;
-  innerHtml += rankingTableHtmlDaily;
-  innerHtml += rankingTableHtmlMonthly;
-  innerHtml += rankingTableHtmlAllTime;
+  innerHtml += renderRankingTable({ "id": "content1", "type": "local", "header1": "順位(24h)", "items": ranking24h });
+  innerHtml += renderRankingTable({ "id": "content2", "type": "local", "header1": "順位(30d)", "items": ranking30d });
+  innerHtml += renderRankingTable({ "id": "content3", "type": "local", "header1": "順位(all)", "items": rankingAll });
+  innerHtml += renderRankingTable({ "id": "content4", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(24h)", "items": rankingBoardMutex.ranking24h });
+  innerHtml += renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(30d)", "items": rankingBoardMutex.ranking30d });
+  innerHtml += renderRankingTable({ "id": "content6", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(all)", "items": rankingBoardMutex.rankingAll });
   innerHtml += '<button id="closeCustomAlert2">閉じる</button>';
 
   alertDiv.innerHTML = innerHtml;
   
   // ドキュメントに追加
   document.body.appendChild(alertDiv);
+  
+  // 閉じるボタンにイベント追加
+  document.getElementById('closeCustomAlert1').onclick = function(){ alertDiv.remove(); callback && callback(); };
+  document.getElementById('closeCustomAlert2').onclick = function(){ alertDiv.remove(); callback && callback(); };
+  
+  // 設定ボタンにイベント追加
+  document.getElementById('configButton').onclick = function(){
+    document.getElementById("nameInput").value = localStorage.getItem("name");
+    document.getElementById("modal-overlay").style.display = "flex";
+    document.getElementById("nameInput").focus();
+  };
+  document.getElementById('modal-button1').onclick = function(){
+    var name = document.getElementById("nameInput").value.trim();
+    localStorage.setItem("name", name);
+    document.getElementById("modal-overlay").style.display = "none";
+  }
+  
+  // 状態
+  var selectedTab = 'tab1';
+  var selectedToggle = 'local';
+
+  function switchTableDisplay() {
+    document.getElementById("content1").style.display = 'none';
+    document.getElementById("content2").style.display = 'none';
+    document.getElementById("content3").style.display = 'none';
+    document.getElementById("content4").style.display = 'none';
+    document.getElementById("content5").style.display = 'none';
+    document.getElementById("content6").style.display = 'none';
+    var targetId = null;
+    if (selectedTab === 'tab1' && selectedToggle === 'local') { targetId = 'content1'; }
+    if (selectedTab === 'tab2' && selectedToggle === 'local') { targetId = 'content2'; }
+    if (selectedTab === 'tab3' && selectedToggle === 'local') { targetId = 'content3'; }
+    if (selectedTab === 'tab1' && selectedToggle === 'online') { targetId = 'content4'; }
+    if (selectedTab === 'tab2' && selectedToggle === 'online') { targetId = 'content5'; }
+    if (selectedTab === 'tab3' && selectedToggle === 'online') { targetId = 'content6'; }
+    document.getElementById(targetId).style.display = null;
+    
+    if (selectedToggle === 'local') { document.getElementById("configButton").style.display = 'none'; }
+    if (selectedToggle === 'online') { document.getElementById("configButton").style.display = null; }
+  };
 
   // タブ切り替えイベント追加
   var tabs = document.querySelectorAll('.tab');
-  var contents = document.querySelectorAll('.ranking-table');
   tabs.forEach(function(tab){
     tab.addEventListener('click', function(){
       tabs.forEach(function(t){t.classList.remove('active')});
       tab.classList.add('active');
-      var targetId = tab.dataset.target;
-      contents.forEach(function(content){
-        if (content.id === targetId) {
-          content.style.display = null;
-        } else {
-          content.style.display = 'none';
-        }
-      });
+      selectedTab = tab.dataset.target;
+      switchTableDisplay();
     });
   });
 
-  // 閉じるボタンにイベント追加
-  document.getElementById('closeCustomAlert1').onclick = function(){ alertDiv.remove(); callback && callback(); };
-  document.getElementById('closeCustomAlert2').onclick = function(){ alertDiv.remove(); callback && callback(); };
+  // 自己べランキング・オンラインランキング切り替えスイッチにイベント追加
+  document.getElementById("toggle-local").addEventListener("change", function(){
+    selectedToggle = 'local';
+    switchTableDisplay();
+  });
+  document.getElementById("toggle-online").addEventListener("change", function(){
+    selectedToggle = 'online';
+    switchTableDisplay();
+  });
+
+  // 初期表示のために一回実行
+  switchTableDisplay();
 }
 
 /**
  * @param {Number} millis 
  * @param {Number} score 
  */
-function setRecordToLocalScoreboard(millis, score) {
+function setRecordToLocalScoreboard(millis, score, rankingBoardMutex) {
   migrateScoreStorage();
   var currentStr = localStorage.getItem("scores3");
   var current = [];
   if (currentStr) current = JSON.parse(currentStr);
-  current.push({
+
+  var item = {
     "id": util.generateUUIDWithWeightedChecksum(),
     "time": (millis / 1000)|0,
     "score": score
-  });
+  };
+  current.push(item);
   localStorage.setItem("scores3", JSON.stringify(current));
+  submitScores({ 
+    "name": localStorage.getItem("name") || "184",
+    "scores": [item],
+  }, rankingBoardMutex);
   return;
 }
 
@@ -999,6 +1184,61 @@ function migrateScoreStorage2to3(){
     });
   });
   localStorage.setItem("scores3", JSON.stringify(v3));
+}
+
+const apiUrl = "https://script.google.com/macros/s/AKfycbzDVVaANuM5pMxvM9ZdiKDSsi6so29fLs9oqQt9_rW7lPZjNdZgmDqVBYb5EoG9OqLV/exec";
+
+/** 
+ * 
+ * @param data {Object}
+ * @param data.name {string}
+ * @param data.scores {[ {id, time, score} ]}
+ */
+function submitScores(data, rankingBoardMutex){
+  rankingBoardMutex.isLoading = true;
+  fetch(apiUrl, {
+    method: "POST",
+    headers: {},
+    body: JSON.stringify({
+      name: data.name,
+      scores: data.scores,
+    }),
+  })
+  .then(function(response) { return response.json(); })
+  .then(function(data){ 
+    rankingBoardMutex.ranking24h = data["24h"];
+    rankingBoardMutex.ranking30d = data["30d"];
+    rankingBoardMutex.rankingAll = data["all"];
+    rankingBoardMutex.isLoading = false;
+    rankingBoardMutex.resolveCallbacks();
+  })
+  .catch(function(error){ 
+    rankingBoardMutex.isLoading = false;
+    console.error("まずいにゃ", error);
+    rankingBoardMutex.resolveCallbacks();
+  });
+}
+
+function fetchOnlineRanking(rankingBoardMutex) {
+  if (rankingBoardMutex.isLoading) return;
+  rankingBoardMutex.isLoading = true;
+  fetch(apiUrl, {
+    method: "GET"
+  })
+  .then(function(response) { return response.json(); })
+  .then(function(data){ 
+    rankingBoardMutex.ranking24h = data["24h"];
+    rankingBoardMutex.ranking30d = data["30d"];
+    rankingBoardMutex.rankingAll = data["all"];
+    rankingBoardMutex.isLoading = false;
+    rankingBoardMutex.resolveCallbacks();
+  })
+  .catch(function(error){ 
+    rankingBoardMutex.isLoading = false;
+    console.error("えらいこっちゃにゃ", error);
+    rankingBoardMutex.resolveCallbacks();
+  });
+
 }
 
 module.exports.create = create;
