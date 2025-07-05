@@ -39,6 +39,18 @@
 			"height": 96,
 			"path": "image/souzu.png"
 		},
+		"loading": {
+			"type": "image",
+			"width": 128,
+			"height": 128,
+			"path": "image/loading.gif"
+		},
+		"gear": {
+			"type": "image",
+			"width": 32,
+			"height": 32,
+			"path": "image/gear.png"
+		},
 		"font16_1": {
 			"type": "image",
 			"width": 256,
