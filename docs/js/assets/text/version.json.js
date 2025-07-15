@@ -1,1 +1,1 @@
-window.gLocalAssetContainer["version"] = "2.2.0%0A"
+window.gLocalAssetContainer["version"] = "2.3.0%0A"

@@ -31,7 +31,7 @@ function create(assetsScene) {
   var rankingBoardMutex = {
     isLoading: false,
     ranking24h: [],
-    ranking30d: [],
+    ranking7d: [],
     rankingAll: [],
     callbacks: [],
     resolveCallbacks: function() {
@@ -842,10 +842,10 @@ function displayLocalScoreboard(rankingBoardMutex, callback) {
 
   var now = new Date();
   var ago24h = ((now.getTime() - 86400 * 1000) / 1000) | 0;
-  var ago30d = ((now.getTime() - 30 * 86400 * 1000) / 1000) | 0;
+  var ago7d = ((now.getTime() - 7 * 86400 * 1000) / 1000) | 0;
 
   var ranking24h = current.filter(function(item){ return item.time >= ago24h; });
-  var ranking30d = current.filter(function(item){ return item.time >= ago30d; });
+  var ranking7d = current.filter(function(item){ return item.time >= ago7d; });
 
   // 長くなりすぎたデータはこのタイミングでストレージから消す
   if (current.length > 20) {
@@ -871,7 +871,7 @@ function displayLocalScoreboard(rankingBoardMutex, callback) {
       "time": util.formatDate(new Date(1000*item.time)),
     };
   });
-  var ranking30d = ranking30d.slice(0, 20).map(function(item){ return {
+  var ranking7d = ranking7d.slice(0, 20).map(function(item){ return {
       "score": item.score,
       "time": util.formatDate(new Date(1000*item.time)),
     };
@@ -881,10 +881,10 @@ function displayLocalScoreboard(rankingBoardMutex, callback) {
       "time": util.formatDate(new Date(1000*item.time)),
     };
   });
-  renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMutex);
+  renderHtml(callback, ranking24h, ranking7d, rankingAll, rankingBoardMutex);
 }
 
-function renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMutex) {
+function renderHtml(callback, ranking24h, ranking7d, rankingAll, rankingBoardMutex) {
 
   // スタイルシートを追加
   if (!document.getElementById('my-dynamic-style')) {
@@ -1000,7 +1000,7 @@ function renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMu
     }
   };
 
-  var labelHtml = '<div class="tabs"><div class="tab active" data-target="tab1">24時間</div><div class="tab" data-target="tab2">30日</div><div class="tab" data-target="tab3">総合</div></div>';
+  var labelHtml = '<div class="tabs"><div class="tab active" data-target="tab1">24時間</div><div class="tab" data-target="tab2">7日間</div><div class="tab" data-target="tab3">総合</div></div>';
 
   var rankingToggleHtml = `
 <div class="toggle-container">
@@ -1028,7 +1028,7 @@ function renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMu
   rankingBoardMutex.callbacks.push(function(){
     if (document.getElementById("customAlert")) {
       document.getElementById("content4").outerHTML = renderRankingTable({ "id": "content4", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(24h)", "items": rankingBoardMutex.ranking24h });
-      document.getElementById("content5").outerHTML = renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(30d)", "items": rankingBoardMutex.ranking30d });
+      document.getElementById("content5").outerHTML = renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(7d)", "items": rankingBoardMutex.ranking7d });
       document.getElementById("content6").outerHTML = renderRankingTable({ "id": "content6", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(all)", "items": rankingBoardMutex.rankingAll });
       switchTableDisplay();
     }
@@ -1043,10 +1043,10 @@ function renderHtml(callback, ranking24h, ranking30d, rankingAll, rankingBoardMu
   innerHtml += rankingToggleHtml;
   innerHtml += labelHtml;
   innerHtml += renderRankingTable({ "id": "content1", "type": "local", "header1": "順位(24h)", "items": ranking24h });
-  innerHtml += renderRankingTable({ "id": "content2", "type": "local", "header1": "順位(30d)", "items": ranking30d });
+  innerHtml += renderRankingTable({ "id": "content2", "type": "local", "header1": "順位(7d)", "items": ranking7d });
   innerHtml += renderRankingTable({ "id": "content3", "type": "local", "header1": "順位(all)", "items": rankingAll });
   innerHtml += renderRankingTable({ "id": "content4", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(24h)", "items": rankingBoardMutex.ranking24h });
-  innerHtml += renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(30d)", "items": rankingBoardMutex.ranking30d });
+  innerHtml += renderRankingTable({ "id": "content5", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(7d)", "items": rankingBoardMutex.ranking7d });
   innerHtml += renderRankingTable({ "id": "content6", "type": (rankingBoardMutex.isLoading ? "loading" : "online"), "header1": "順位(all)", "items": rankingBoardMutex.rankingAll });
   innerHtml += '<button id="closeCustomAlert2">閉じる</button>';
 
@@ -1187,7 +1187,7 @@ function migrateScoreStorage2to3(){
   localStorage.setItem("scores3", JSON.stringify(v3));
 }
 
-const apiUrl = "https://script.google.com/macros/s/AKfycbzDVVaANuM5pMxvM9ZdiKDSsi6so29fLs9oqQt9_rW7lPZjNdZgmDqVBYb5EoG9OqLV/exec";
+const apiUrl = "https://script.google.com/macros/s/AKfycbxlELXYpkpDmjOtt584JAoN1KxcKrqkYvhoFtg9ljvcSghEbV5yKwhmZUEK_OhNDt8k/exec";
 
 /** 
  * 
@@ -1208,7 +1208,7 @@ function submitScores(data, rankingBoardMutex){
   .then(function(response) { return response.json(); })
   .then(function(data){ 
     rankingBoardMutex.ranking24h = data["24h"];
-    rankingBoardMutex.ranking30d = data["30d"];
+    rankingBoardMutex.ranking7d = data["7d"];
     rankingBoardMutex.rankingAll = data["all"];
     rankingBoardMutex.isLoading = false;
     rankingBoardMutex.resolveCallbacks();
@@ -1229,7 +1229,7 @@ function fetchOnlineRanking(rankingBoardMutex) {
   .then(function(response) { return response.json(); })
   .then(function(data){ 
     rankingBoardMutex.ranking24h = data["24h"];
-    rankingBoardMutex.ranking30d = data["30d"];
+    rankingBoardMutex.ranking7d = data["7d"];
     rankingBoardMutex.rankingAll = data["all"];
     rankingBoardMutex.isLoading = false;
     rankingBoardMutex.resolveCallbacks();
