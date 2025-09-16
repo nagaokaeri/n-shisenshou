@@ -1186,7 +1186,7 @@ function migrateScoreStorage2to3(){
   localStorage.setItem("scores3", JSON.stringify(v3));
 }
 
-const apiUrl = "https://script.google.com/macros/s/AKfycbxlELXYpkpDmjOtt584JAoN1KxcKrqkYvhoFtg9ljvcSghEbV5yKwhmZUEK_OhNDt8k/exec";
+const apiUrl = "https://script.google.com/macros/s/AKfycby8vvZKfsFcb8tK-59Y0LVNfbgCPzZJJD7RixkKNmJxXaKXtJjNAwuWWJLto0zyaaFr/exec";
 
 /** 
  * 
